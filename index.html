@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cala de Oro - Full Office Dashboard Demo</title>
+    <style>
+        :root {
+            --primary-bg: #f4f7f6;
+            --sidebar-bg: #2c3e50;
+            --text-color: #333;
+            --light-text: #ecf0f1;
+            --accent-color: #3498db;
+            --card-bg: #ffffff;
+            --success-color: #27ae60;
+            --vanessa-color: #e67e22;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            height: 100vh;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 220px; background-color: var(--sidebar-bg); color: var(--light-text);
+            display: flex; flex-direction: column; padding-top: 20px; flex-shrink: 0;
+        }
+
+        .sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 1.2rem; letter-spacing: 1px; }
+
+        .menu-btn {
+            background: none; border: none; color: var(--light-text); padding: 15px 20px;
+            text-align: left; font-size: 1rem; cursor: pointer; transition: background 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .menu-btn:hover, .menu-btn.active { background-color: #34495e; border-left-color: var(--accent-color); }
+
+        /* Main Content Styling */
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
+
+        .header-title {
+            margin-top: 0; font-size: 2rem; color: var(--sidebar-bg);
+            border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 10px;
+        }
+        
+        .sub-category {
+            color: var(--sidebar-bg); border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px; font-size: 1.4rem;
+        }
+
+        .section-content { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .section-content.active { display: block; }
+
+        /* Cards Layout */
+        .grid-container {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;
+        }
+
+        .card {
+            background-color: var(--card-bg); padding: 15px; border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid var(--accent-color);
+            display: flex; flex-direction: column;
+        }
+
+        .card h3 { margin-top: 0; color: var(--sidebar-bg); font-size: 1.1rem; }
+        .price-tag { font-size: 1.1rem; font-weight: bold; color: var(--success-color); margin-bottom: 10px; }
+        .feature-item { padding: 3px 0; border-bottom: 1px solid #eee; font-size: 0.85rem; color: #555; }
+
+        /* BUTTONS & INPUTS */
+        .add-btn {
+            margin-top: 10px; padding: 10px; background-color: var(--accent-color);
+            color: white; border: none; border-radius: 5px; cursor: pointer;
+            font-weight: bold; transition: 0.2s; font-size: 0.9rem;
+        }
+        .add-btn:hover { background-color: #2980b9; }
+        .split-btn { background-color: var(--vanessa-color); }
+        .split-btn:hover { background-color: #d35400; }
+
+        .custom-input {
+            width: 100%; padding: 8px; margin-top: 10px; border: 1px solid #ccc;
+            border-radius: 5px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;
+        }
+
+        /* RIGHT PANEL: BILLING & REPORT DEMO */
+        .billing-panel {
+            width: 320px; background-color: #fff; border-left: 2px solid #ddd;
+            padding: 20px; display: flex; flex-direction: column;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.05); flex-shrink: 0;
+        }
+
+        .billing-panel h2 { font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 10px; color: var(--sidebar-bg); }
+        .cart-items { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; }
+        .log-entry {
+            background: #f9f9f9; padding: 10px; border-radius: 5px;
+            margin-bottom: 10px; border-left: 4px solid var(--sidebar-bg); font-size: 0.9rem;
+        }
+        .split-details { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.8rem; font-weight: bold; }
+
+        .report-box { background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .report-box h3 { margin: 0 0 10px 0; font-size: 1rem; }
+        .total-amount { font-size: 1.5rem; font-weight: bold; color: var(--success-color); }
+
+        .submit-btn {
+            margin-top: 20px; padding: 15px; background-color: var(--sidebar-bg); color: white; border: none;
+            border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s;
+        }
+        .submit-btn:hover { background-color: #1a252f; }
+
+        /* PROFESSIONAL TABLE STYLING */
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .report-table th, .report-table td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; }
+        .report-table th { background-color: var(--sidebar-bg); color: white; }
+        .report-table tfoot { font-weight: bold; background-color: #f9f9f9; }
+
+        @media print {
+            .sidebar, .billing-panel, .menu-btn, .add-btn, .submit-btn, .print-hide, .custom-input { display: none !important; }
+            body { background-color: white; }
+            .main-content { padding: 0; }
+            .report-table { box-shadow: none; border: 1px solid #000; }
+            .report-table th, .report-table td { border: 1px solid #000; }
+            .report-table th { background-color: #ddd !important; color: #000; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <div class="sidebar">
+        <h2>CALA DE ORO<br><span style="font-size: 0.8rem; color: #aaa;">Sales Dashboard</span></h2>
+        <button class="menu-btn active" onclick="openSection('rooms', this)">Rooms</button>
+        <button class="menu-btn" onclick="openSection('entrance', this)">Entrance Fees</button>
+        <button class="menu-btn" onclick="openSection('corkage', this)">Corkage</button>
+        <button class="menu-btn" onclick="openSection('rentals', this)">Tents & Rentals</button>
+        <button class="menu-btn" onclick="openSection('outlets', this)">Resort Outlets</button>
+        <button class="menu-btn" onclick="openSection('other-sales', this)">Other Sales</button>
+        <hr style="border:0; border-top: 1px solid #455a64; margin: 20px 0; width: 100%;">
+        <button id="nav-reports-btn" class="menu-btn" onclick="openSection('reports-tab', this)" style="color: #2ecc71; font-weight: bold;">Reports & Analytics</button>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-content">
+        
+        <!-- ROOMS SECTION -->
+        <div id="rooms" class="section-content active">
+            <h1 class="header-title">Room Accommodations</h1>
+            <p style="color: #666; font-size: 0.9rem;">To add excess pax, type the number of extra heads before clicking Check In.</p>
+
+            <h2 class="sub-category">Duplex Rooms</h2>
+            <div class="grid-container">
+                <div class="card">
+                    <h3>Duplex 1</h3>
+                    <div class="price-tag">₱3,000 / night</div>
+                    <div class="feature-item">Good for 2 pax | Max: 6</div>
+                    <input type="number" id="dup1-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('Duplex 1', 3000, 'dup1-excess', 550)">Check In Duplex 1</button>
+                </div>
+                <div class="card">
+                    <h3>Duplex 2</h3>
+                    <div class="price-tag">₱3,000 / night</div>
+                    <div class="feature-item">Good for 2 pax | Max: 6</div>
+                    <input type="number" id="dup2-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('Duplex 2', 3000, 'dup2-excess', 550)">Check In Duplex 2</button>
+                </div>
+                <div class="card">
+                    <h3>Duplex 3 (Family)</h3>
+                    <div class="price-tag">₱4,100 / night</div>
+                    <div class="feature-item">Good for 4 pax | Max: 8</div>
+                    <input type="number" id="dup3-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('Duplex 3', 4100, 'dup3-excess', 550)">Check In Duplex 3</button>
+                </div>
+                <div class="card">
+                    <h3>Duplex 4 (Family)</h3>
+                    <div class="price-tag">₱4,100 / night</div>
+                    <div class="feature-item">Good for 4 pax | Max: 8</div>
+                    <input type="number" id="dup4-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('Duplex 4', 4100, 'dup4-excess', 550)">Check In Duplex 4</button>
+                </div>
+                <div class="card">
+                    <h3>Duplex 5</h3>
+                    <div class="price-tag">₱3,000 / night</div>
+                    <div class="feature-item">Good for 2 pax | Max: 6</div>
+                    <input type="number" id="dup5-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('Duplex 5', 3000, 'dup5-excess', 550)">Check In Duplex 5</button>
+                </div>
+                <div class="card">
+                    <h3>Duplex 6</h3>
+                    <div class="price-tag">₱3,000 / night</div>
+                    <div class="feature-item">Good for 2 pax | Max: 6</div>
+                    <input type="number" id="dup6-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('Duplex 6', 3000, 'dup6-excess', 550)">Check In Duplex 6</button>
+                </div>
+            </div>
+
+            <h2 class="sub-category">Row Houses</h2>
+            <div class="grid-container">
+                <div class="card">
+                    <h3>Row House 1</h3>
+                    <div class="price-tag">₱2,500 / night</div>
+                    <div class="feature-item">Good for 3 pax | Max: 8</div>
+                    <input type="number" id="rh1-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('Row House 1', 2500, 'rh1-excess', 400)">Check In Row House 1</button>
+                </div>
+                <div class="card">
+                    <h3>Row House 2</h3>
+                    <div class="price-tag">₱2,500 / night</div>
+                    <div class="feature-item">Good for 3 pax | Max: 8</div>
+                    <input type="number" id="rh2-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('Row House 2', 2500, 'rh2-excess', 400)">Check In Row House 2</button>
+                </div>
+                <div class="card">
+                    <h3>Row House 3</h3>
+                    <div class="price-tag">₱2,500 / night</div>
+                    <div class="feature-item">Good for 3 pax | Max: 8</div>
+                    <input type="number" id="rh3-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('Row House 3', 2500, 'rh3-excess', 400)">Check In Row House 3</button>
+                </div>
+            </div>
+
+            <h2 class="sub-category">A-Frame Accommodations</h2>
+            <div class="grid-container">
+                <div class="card">
+                    <h3>AC A-Frame</h3>
+                    <div class="price-tag">₱2,500 / night</div>
+                    <div class="feature-item">Good for 2 pax | Max: 3</div>
+                    <input type="number" id="aca-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn print-hide" onclick="addRoomWithExcess('AC A-Frame', 2500, 'aca-excess', 350)">Check In AC A-Frame</button>
+                </div>
+                <div class="card" style="border-top-color: var(--vanessa-color);">
+                    <h3>Regular A-Frame</h3>
+                    <div class="price-tag">₱2,000 / night</div>
+                    <div class="feature-item">Owner: Vanessa (70/30 Split)</div>
+                    <div class="feature-item">Good for 2 pax | Max: 5</div>
+                    <input type="number" id="rega-excess" class="custom-input print-hide" placeholder="Type # of extra pax">
+                    <button class="add-btn split-btn print-hide" onclick="addSplitRoomWithExcess('Regular A-Frame', 2000, 'rega-excess', 150)">Check In (Split Revenue)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ENTRANCE FEES SECTION -->
+        <div id="entrance" class="section-content">
+            <h1 class="header-title">Entrance Fees</h1>
+            <div class="grid-container">
+                <div class="card">
+                    <h3>Day Tour Rates</h3>
+                    <div class="feature-item">Adult: ₱100 | Kids: ₱50 | Senior: ₱80</div>
+                    <button class="add-btn print-hide" onclick="addToBill('Day Tour - Adult', 100, 0, 100)">Add Adult</button>
+                </div>
+                <div class="card">
+                    <h3>Night Tour Rates</h3>
+                    <div class="feature-item">Adult: ₱250 | Kids: ₱150</div>
+                    <button class="add-btn print-hide" onclick="addToBill('Night Tour - Adult', 250, 0, 250)">Add Adult</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CORKAGE SECTION -->
+        <div id="corkage" class="section-content">
+            <h1 class="header-title">Corkage Fees</h1>
+            <div class="grid-container">
+                <div class="card">
+                    <h3>Food Corkage</h3>
+                    <div class="price-tag">₱40 per head</div>
+                    <button class="add-btn print-hide" onclick="addToBill('Food Corkage', 40, 0, 40)">Add to Bill</button>
+                </div>
+                <div class="card">
+                    <h3>Drink Corkage</h3>
+                    <div class="feature-item">500 ML below: ₱50</div>
+                    <button class="add-btn print-hide" onclick="addToBill('Drink Corkage (<500ml)', 50, 0, 50)">Add 500ml Below</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TENTS & RENTALS SECTION -->
+        <div id="rentals" class="section-content">
+            <h1 class="header-title">Tents, Tables & Chairs</h1>
+            <div class="grid-container">
+                <div class="card">
+                    <h3>Tent Pitching</h3>
+                    <div class="price-tag">₱200</div>
+                    <button class="add-btn print-hide" onclick="addToBill('Tent Pitching', 200, 0, 200)">Add to Bill</button>
+                </div>
+                <div class="card">
+                    <h3>Tent Rental</h3>
+                    <input type="number" id="tent-rent-price" class="custom-input print-hide" placeholder="Rental Amount (₱)">
+                    <button class="add-btn print-hide" onclick="addVariableBill('Tent Rental', 'tent-rent-price')">Add Tent Rental</button>
+                </div>
+                <div class="card">
+                    <h3>Tables & Chairs</h3>
+                    <input type="number" id="table-chair-price" class="custom-input print-hide" placeholder="Amount (₱)">
+                    <button class="add-btn print-hide" onclick="addVariableBill('Tables/Chairs Rent', 'table-chair-price')">Add Equipment Rent</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESORT OUTLETS SECTION -->
+        <div id="outlets" class="section-content">
+            <h1 class="header-title">Resort Outlets & Facilities</h1>
+            <div class="grid-container">
+                <div class="card">
+                    <h3>Grandmas (Restaurant)</h3>
+                    <input type="number" id="grandmas-price" class="custom-input print-hide" placeholder="Receipt Total (₱)">
+                    <button class="add-btn print-hide" onclick="addVariableBill('Grandmas Restaurant', 'grandmas-price')">Add Restaurant Sale</button>
+                </div>
+                <div class="card">
+                    <h3>Firefly</h3>
+                    <input type="number" id="firefly-price" class="custom-input print-hide" placeholder="Sale Amount (₱)">
+                    <button class="add-btn print-hide" onclick="addVariableBill('Firefly Outlet', 'firefly-price')">Add Firefly Sale</button>
+                </div>
+                <div class="card">
+                    <h3>Beach Kiosk</h3>
+                    <input type="number" id="kiosk-price" class="custom-input print-hide" placeholder="Sale Amount (₱)">
+                    <button class="add-btn print-hide" onclick="addVariableBill('Beach Kiosk', 'kiosk-price')">Add Kiosk Sale</button>
+                </div>
+                <div class="card">
+                    <h3>Pavilion</h3>
+                    <input type="number" id="pavilion-price" class="custom-input print-hide" placeholder="Sale Amount (₱)">
+                    <button class="add-btn print-hide" onclick="addVariableBill('Pavilion', 'pavilion-price')">Add Pavilion Sale</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- OTHER SALES SECTION -->
+        <div id="other-sales" class="section-content">
+            <h1 class="header-title">Other Services & Sales</h1>
+            <div class="grid-container">
+                <div class="card">
+                    <h3>Island Hopping</h3>
+                    <input type="number" id="island-price" class="custom-input print-hide" placeholder="Package Amount (₱)">
+                    <button class="add-btn print-hide" onclick="addVariableBill('Island Hopping', 'island-price')">Add Island Hopping</button>
+                </div>
+                <div class="card">
+                    <h3>Catering</h3>
+                    <input type="number" id="catering-price" class="custom-input print-hide" placeholder="Catering Amount (₱)">
+                    <button class="add-btn print-hide" onclick="addVariableBill('Catering Service', 'catering-price')">Add Catering</button>
+                </div>
+                <div class="card">
+                    <h3>Car Camping</h3>
+                    <input type="number" id="carcamp-price" class="custom-input print-hide" placeholder="Camping Amount (₱)">
+                    <button class="add-btn print-hide" onclick="addVariableBill('Car Camping', 'carcamp-price')">Add Car Camping</button>
+                </div>
+                <div class="card" style="border-top-color: #8e44ad;">
+                    <h3>* Specify Custom Sale *</h3>
+                    <input type="text" id="custom-item-name" class="custom-input print-hide" placeholder="Item/Service Name">
+                    <input type="number" id="custom-item-price" class="custom-input print-hide" placeholder="Amount (₱)">
+                    <button class="add-btn print-hide" style="background-color: #8e44ad;" onclick="addCustomBill()">Add Custom Item</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW REPORTS & ANALYTICS TAB -->
+        <div id="reports-tab" class="section-content">
+            <h1 class="header-title print-hide">Financial Reporting & Analytics</h1>
+            <div class="print-hide" style="margin-bottom: 30px;">
+                <button class="submit-btn" style="margin-top:0;" onclick="generateMonthlyReport()">Refresh Report Data</button>
+                <button class="add-btn" style="margin-top:0; margin-left: 10px; background-color: #7f8c8d;" onclick="window.print()">Print PDF</button>
+            </div>
+
+            <div id="report-container" style="display:none; background: #fff; padding: 30px; border-radius: 8px; border: 1px solid #ddd;">
+                <h2 style="color: var(--sidebar-bg); text-transform: uppercase; margin-top: 0;">Cala de Oro</h2>
+                <h3 style="color: #666; margin-top: -10px;">Sales & Revenue Split Report</h3>
+                
+                <!-- NEW: Date element added here just above the table -->
+                <p id="report-generated-date" style="font-weight: bold; color: #444; margin-bottom: 15px; font-size: 1.1rem;"></p>
+
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Item / Service</th>
+                            <th>Gross Amount</th>
+                            <th>Resort Net</th>
+                            <th>Owner (Vanessa)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-table-body"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" style="text-align: right; text-transform: uppercase;"><strong>Final Totals:</strong></td>
+                            <td id="table-total-gross" style="color: var(--text-color);">₱0</td>
+                            <td id="table-total-resort" style="color: var(--success-color);">₱0</td>
+                            <td id="table-total-vanessa" style="color: var(--vanessa-color);">₱0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: BILLING & REPORTS -->
+    <div class="billing-panel">
+        <h2>Live Transaction Log</h2>
+        <div id="cart-items" class="cart-items">
+            <p style="font-size: 0.8rem; color: #888; text-align: center;" id="empty-msg">Click 'Check In' to simulate.</p>
+        </div>
+
+        <div class="report-box">
+            <h3>CALA Sales Report <br><small style="color: #666; font-weight: normal;">(Resort's Clean Revenue)</small></h3>
+            <div class="total-amount" id="ceo-total">₱0</div>
+        </div>
+
+        <div class="report-box" style="background-color: #fdf3e8;">
+            <h3 style="color: var(--vanessa-color);">Vanessa's Report <br><small style="color: #666; font-weight: normal;">(Owner Payout Due)</small></h3>
+            <div class="total-amount" style="color: var(--vanessa-color);" id="vanessa-total">₱0</div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 10px; font-weight: bold;">
+            Customer Pays Total: <span id="customer-total">₱0</span>
+        </div>
+
+        <button class="submit-btn" onclick="openReportTabAndGenerate()">Generate Report</button>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let totalCeoRevenue = 0;
+        let totalVanessaRevenue = 0;
+        let totalCustomerBill = 0;
+        let transactionDatabase = []; 
+
+        function openSection(sectionId, btnElement) {
+            const sections = document.querySelectorAll('.section-content');
+            sections.forEach(section => section.classList.remove('active'));
+            const buttons = document.querySelectorAll('.menu-btn');
+            buttons.forEach(button => button.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function addRoomWithExcess(roomName, basePrice, excessInputId, excessRate) {
+            const excessInput = document.getElementById(excessInputId);
+            let excessCount = parseInt(excessInput.value);
+            
+            if (isNaN(excessCount) || excessCount < 0) {
+                excessCount = 0; 
+            }
+
+            const totalExcessCost = excessCount * excessRate;
+            const finalPrice = basePrice + totalExcessCost;
+            
+            let label = roomName;
+            if (excessCount > 0) {
+                label += ` (+${excessCount} Extra Pax)`;
+            }
+
+            addToBill(label, finalPrice, 0, finalPrice);
+            excessInput.value = ''; 
+        }
+
+        function addSplitRoomWithExcess(roomName, basePrice, excessInputId, excessRate) {
+            const excessInput = document.getElementById(excessInputId);
+            let excessCount = parseInt(excessInput.value);
+            if (isNaN(excessCount) || excessCount < 0) { excessCount = 0; }
+
+            const totalExcessCost = excessCount * excessRate;
+            const finalPrice = basePrice + totalExcessCost;
+
+            const vanessaShare = finalPrice * 0.70;
+            const resortShare = finalPrice * 0.30;
+
+            let label = roomName;
+            if (excessCount > 0) { label += ` (+${excessCount} Extra Pax)`; }
+
+            addToBill(label, finalPrice, vanessaShare, resortShare);
+            excessInput.value = '';
+        }
+
+        function addVariableBill(itemName, inputId) {
+            const priceInput = document.getElementById(inputId);
+            const price = parseFloat(priceInput.value);
+            if (isNaN(price) || price <= 0) { alert("Please enter a valid amount for " + itemName); return; }
+            addToBill(itemName, price, 0, price);
+            priceInput.value = '';
+        }
+
+        function addCustomBill() {
+            const nameInput = document.getElementById('custom-item-name');
+            const priceInput = document.getElementById('custom-item-price');
+            const name = nameInput.value.trim() || 'Custom Sale Item';
+            const price = parseFloat(priceInput.value);
+            if (isNaN(price) || price <= 0) { alert("Please enter a valid amount."); return; }
+            addToBill(name, price, 0, price);
+            nameInput.value = '';
+            priceInput.value = '';
+        }
+
+        function addToBill(itemName, totalCost, vanessaShare, resortShare) {
+            const emptyMsg = document.getElementById('empty-msg');
+            if (emptyMsg) emptyMsg.style.display = 'none';
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            transactionDatabase.push({ time: timeString, name: itemName, gross: totalCost, vanessa: vanessaShare, resort: resortShare });
+
+            const cartContainer = document.getElementById('cart-items');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            if (vanessaShare > 0) {
+                logEntry.innerHTML = `<strong>${itemName}</strong> <br> Paid: ₱${totalCost}
+                    <div class="split-details">
+                        <span style="color: var(--vanessa-color);">Vanessa: ₱${vanessaShare.toFixed(2)}</span>
+                        <span style="color: var(--success-color);">Resort: ₱${resortShare.toFixed(2)}</span>
+                    </div>`;
+            } else {
+                logEntry.innerHTML = `<strong>${itemName}</strong> <br> Paid: ₱${totalCost}
+                    <div class="split-details"><span style="color: var(--success-color);">Resort: ₱${resortShare.toFixed(2)}</span></div>`;
+            }
+            cartContainer.appendChild(logEntry);
+            cartContainer.scrollTop = cartContainer.scrollHeight;
+
+            totalCustomerBill += totalCost;
+            totalVanessaRevenue += vanessaShare;
+            totalCeoRevenue += resortShare;
+
+            document.getElementById('customer-total').innerText = '₱' + totalCustomerBill.toLocaleString();
+            document.getElementById('vanessa-total').innerText = '₱' + totalVanessaRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('ceo-total').innerText = '₱' + totalCeoRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function openReportTabAndGenerate() {
+            if (transactionDatabase.length === 0) { 
+                alert("No sales data available. Please add some transactions first!"); 
+                return; 
+            }
+            const navBtn = document.getElementById('nav-reports-btn');
+            openSection('reports-tab', navBtn);
+            generateMonthlyReport();
+        }
+
+        function generateMonthlyReport() {
+            if (transactionDatabase.length === 0) { return; }
+            
+            // Generate the current date and display it outside the table
+            const today = new Date();
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = today.toLocaleDateString('en-US', dateOptions);
+            document.getElementById('report-generated-date').innerText = 'Report Date: ' + formattedDate;
+
+            const tbody = document.getElementById('report-table-body');
+            tbody.innerHTML = ''; 
+            let grandGross = 0; let grandResort = 0; let grandVanessa = 0;
+
+            transactionDatabase.forEach(tx => {
+                grandGross += tx.gross; grandResort += tx.resort; grandVanessa += tx.vanessa;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${tx.time}</td>
+                    <td>${tx.name}</td>
+                    <td>₱${tx.gross.toLocaleString()}</td>
+                    <td style="color: var(--success-color); font-weight: bold;">₱${tx.resort.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td style="color: var(--vanessa-color); font-weight: bold;">₱${tx.vanessa.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('table-total-gross').innerText = '₱' + grandGross.toLocaleString();
+            document.getElementById('table-total-resort').innerText = '₱' + grandResort.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('table-total-vanessa').innerText = '₱' + grandVanessa.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            document.getElementById('report-container').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
