@@ -1427,8 +1427,8 @@
         // UI Routing
         function openSection(sectionId, btnElement) {
             // Check if user has permission to access this section
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-            if (!currentUser) {
+            const userRole = sessionStorage.getItem('userRole');
+            if (!userRole) {
                 alert('Session expired. Please login again.');
                 window.location.reload();
                 return;
@@ -1436,7 +1436,7 @@
             
             // Restrict reports access to CEO and ADMIN only
             if (sectionId === 'reports-tab') {
-                if (currentUser.role !== 'CEO' && currentUser.role !== 'ADMIN') {
+                if (userRole !== 'CEO' && userRole !== 'ADMIN') {
                     alert('Access Denied: Only CEO and ADMIN roles can view reports.');
                     return;
                 }
