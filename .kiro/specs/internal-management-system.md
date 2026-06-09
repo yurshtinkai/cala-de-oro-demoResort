@@ -93,7 +93,7 @@ IT STAFF (Technical Admin)
 
 **Permissions:**
 - ✅ View executive dashboard with KPIs
-- ✅ Access all financial reports
+- ✅ Access all financial reports (RESTRICTED ACCESS)
 - ✅ View revenue analytics and trends
 - ✅ Access occupancy reports
 - ✅ Export reports (PDF, Excel)
@@ -101,6 +101,8 @@ IT STAFF (Technical Admin)
 - ❌ Cannot perform transactions
 - ❌ Cannot modify bookings
 - ❌ Cannot manage users
+
+**Security:** Only CEO and ADMIN roles can access Reports & Analytics section.
 
 **Default View:** Reports & Analytics
 
@@ -113,13 +115,15 @@ IT STAFF (Technical Admin)
 - ✅ All operational modules
 - ✅ Room management (check-in/out, status)
 - ✅ Process all transactions
-- ✅ View financial reports
+- ✅ View financial reports (RESTRICTED ACCESS)
 - ✅ Guest management
 - ✅ Booking modifications
 - ✅ Inventory management
 - ✅ View user list
 - ⚠️ Limited user creation (not CEO/ADMIN roles)
 - ❌ Cannot access system settings
+
+**Security:** Only CEO and ADMIN roles can access Reports & Analytics section.
 
 **Default View:** Room Status Map
 
@@ -137,11 +141,13 @@ IT STAFF (Technical Admin)
 - ✅ Integration monitoring
 - ✅ Technical reports
 - ✅ Create users with any role
-- ✅ **CEO Executive Dashboard** (full system visibility for analysis)
+- ❌ **Cannot access Financial Reports & Analytics** (restricted to CEO and ADMIN only)
+
+**Security:** IT Staff does NOT have access to the CEO Executive Dashboard or Financial Reports for security and separation of duties. Only CEO and ADMIN roles can view financial data.
 
 **Default View:** User Management Dashboard
 
-**Note:** IT Staff have the same executive dashboard access as CEO to provide full system insights for troubleshooting, performance monitoring, and technical analysis. Unlike CEO, IT maintains full operational capabilities.
+**Note:** IT Staff maintains full operational and system administration capabilities but financial reporting access is restricted to maintain proper separation of duties and data security.
 
 ---
 

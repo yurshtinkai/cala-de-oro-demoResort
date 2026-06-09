@@ -1426,6 +1426,22 @@
 
         // UI Routing
         function openSection(sectionId, btnElement) {
+            // Check if user has permission to access this section
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            if (!currentUser) {
+                alert('Session expired. Please login again.');
+                window.location.reload();
+                return;
+            }
+            
+            // Restrict reports access to CEO and ADMIN only
+            if (sectionId === 'reports-tab') {
+                if (currentUser.role !== 'CEO' && currentUser.role !== 'ADMIN') {
+                    alert('Access Denied: Only CEO and ADMIN roles can view reports.');
+                    return;
+                }
+            }
+            
             const sections = document.querySelectorAll('.section-content');
             sections.forEach(section => section.classList.remove('active'));
             const buttons = document.querySelectorAll('.menu-btn');
@@ -2020,10 +2036,12 @@
                 }
             });
             
-            // Explicitly ensure Reports button is visible for IT and ADMIN
+            // Explicitly ensure Reports button is visible for ADMIN and CEO only
             const reportsBtn = document.getElementById('nav-reports-btn');
-            if (reportsBtn && (role === 'IT' || role === 'ADMIN' || role === 'CEO')) {
+            if (reportsBtn && (role === 'ADMIN' || role === 'CEO')) {
                 reportsBtn.style.display = 'block';
+            } else if (reportsBtn) {
+                reportsBtn.style.display = 'none';
             }
 
             // Add role indicator to header
@@ -2054,15 +2072,6 @@
                     }
                     
                     // Initialize CEO Executive Dashboard
-                    initCEODashboard();
-                }, 100);
-            }
-
-            // For IT role, grant access to CEO Executive Dashboard (full system visibility)
-            if (role === 'IT') {
-                setTimeout(() => {
-                    // Initialize CEO Executive Dashboard for IT staff
-                    // IT has full operational access PLUS executive insights for troubleshooting
                     initCEODashboard();
                 }, 100);
             }
