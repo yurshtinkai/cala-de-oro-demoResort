@@ -157,10 +157,12 @@
     <!-- SIDEBAR -->
     <div class="sidebar print-hide">
         <h2>CALA DE ORO<br><span style="font-size: 0.8rem; color: #aaa;">Sales Dashboard</span></h2>
-        <button class="menu-btn active" onclick="openSection('rooms', this)">Rooms</button>
+        <button class="menu-btn active" onclick="openSection('room-map', this)">Room Status Map</button>
+        <button class="menu-btn" onclick="openSection('rooms', this)">Rooms (Tables)</button>
         <button class="menu-btn" onclick="openSection('entrance', this)">Entrance Fees</button>
         <button class="menu-btn" onclick="openSection('corkage', this)">Corkage</button>
         <button class="menu-btn" onclick="openSection('tents', this)">Tents & Equipment</button>
+
         <button class="menu-btn" onclick="openSection('outlets', this)">Resort Outlets</button>
         <button class="menu-btn" onclick="openSection('other', this)">Other Sales</button>
         <hr style="border:0; border-top: 1px solid #455a64; margin: 20px 0; width: 100%;">
@@ -170,8 +172,24 @@
     <!-- MAIN CONTENT -->
     <div class="main-content">
         
+        <!-- ROOM MAP SECTION -->
+        <div id="room-map" class="section-content active">
+            <h1 class="header-title">Room Status Overview</h1>
+            <p style="color: #666; margin-top: -10px; margin-bottom: 20px;">View all rooms at a glance. Click a room to update its status or manage bookings.</p>
+            
+            <!-- Legend -->
+            <div style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#2ecc71; border-radius: 4px;"></div> Available</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#3498db; border-radius: 4px;"></div> Booked in Advance</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#e74c3c; border-radius: 4px;"></div> Occupied</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#f1c40f; border-radius: 4px;"></div> Cleaning</div>
+            </div>
+
+            <div id="room-map-container"></div>
+        </div>
+
         <!-- ROOMS SECTION -->
-        <div id="rooms" class="section-content active">
+        <div id="rooms" class="section-content">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); margin-bottom: 10px; padding-bottom: 10px;">
                 <h1 class="header-title" style="border: none; margin: 0; padding: 0;" id="room-header-text">Room Categories</h1>
                 <button id="back-to-categories-btn" class="add-btn print-hide" style="width: auto; margin: 0; display: none; background-color: #7f8c8d;" onclick="showRoomCategories()">← Back to Categories</button>
@@ -548,10 +566,10 @@
         const roomsDB = [
             { id: 'dup1', name: 'Duplex 1', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'dup2', name: 'Duplex 2', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
-            { id: 'dup5', name: 'Duplex 5', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
-            { id: 'dup6', name: 'Duplex 6', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'dup3', name: 'Duplex 3', category: 'Duplex', baseCapacity: 4, maxCapacity: 8, basePrice: 4100, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'dup4', name: 'Duplex 4', category: 'Duplex', baseCapacity: 4, maxCapacity: 8, basePrice: 4100, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'dup5', name: 'Duplex 5', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'dup6', name: 'Duplex 6', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             
             { id: 'rh1', name: 'Row House 1', category: 'Row House', baseCapacity: 3, maxCapacity: 8, basePrice: 2500, excessRate: 400, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'rh2', name: 'Row House 2', category: 'Row House', baseCapacity: 3, maxCapacity: 8, basePrice: 2500, excessRate: 400, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
@@ -565,27 +583,41 @@
             { id: 'rega_on', name: 'Regular A-Frame (Overnight)', category: 'Regular A-Frame', baseCapacity: 2, maxCapacity: 5, basePrice: 2000, excessRate: 150, isVanessa: true, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' }
         ];
 
+        let currentRoomFilter = null;
         function renderRoomsTable(categoryFilter = null) {
+            if (categoryFilter !== null) {
+                currentRoomFilter = categoryFilter;
+            }
+            const activeFilter = currentRoomFilter;
+
             const tbody = document.getElementById('room-table-body');
             tbody.innerHTML = '';
             
-            const filteredRooms = categoryFilter ? roomsDB.filter(r => r.category === categoryFilter) : roomsDB;
+            const filteredRooms = activeFilter ? roomsDB.filter(r => r.category === activeFilter) : roomsDB;
 
             filteredRooms.forEach(room => {
-                const tr = document.createElement('tr');
-                
                 let statusHtml = '';
                 let actionHtml = '';
                 if (room.status === 'available') {
-                    statusHtml = `<span class="status-badge status-avail">🟢 Available</span>`;
-                    actionHtml = `<button class="action-btn" onclick="openBookingModal('${room.id}')">Book</button>`;
-                } else {
-                    statusHtml = `<span class="status-badge status-occ">🔴 Occupied</span>
+                    statusHtml = `<span class="status-badge" style="background-color: #2ecc71;">Available</span>`;
+                    actionHtml = `<button class="action-btn" onclick="openBookingModal('${room.id}')">Book / Check-In</button>
+                                  <button class="action-btn" style="background-color: #3498db; margin-left: 5px; margin-top: 5px;" onclick="quickStatus('${room.id}', 'booked')">Reserve</button>
+                                  <button class="action-btn" style="background-color: #f1c40f; color: #333; margin-left: 5px; margin-top: 5px;" onclick="quickStatus('${room.id}', 'cleaning')">Clean</button>`;
+                } else if (room.status === 'occupied') {
+                    statusHtml = `<span class="status-badge" style="background-color: #e74c3c;">Occupied</span>
                                   <div style="font-size: 0.75rem; color: #666; margin-top:4px;">${room.checkIn} to ${room.checkOut}</div>
                                   <div style="font-size: 0.75rem; color: #333;"><b>${room.guestDisplay}</b></div>`;
                     actionHtml = `<button class="action-btn checkout" onclick="checkoutRoom('${room.id}')">Check Out</button>`;
+                } else if (room.status === 'booked') {
+                    statusHtml = `<span class="status-badge" style="background-color: #3498db;">Booked in Advance</span>`;
+                    actionHtml = `<button class="action-btn" onclick="openBookingModal('${room.id}')">Check-In Now</button>
+                                  <button class="action-btn checkout" style="margin-left: 5px; margin-top: 5px;" onclick="quickStatus('${room.id}', 'available')">Cancel</button>`;
+                } else if (room.status === 'cleaning') {
+                    statusHtml = `<span class="status-badge" style="background-color: #f1c40f; color: #333;">Cleaning</span>`;
+                    actionHtml = `<button class="action-btn" style="background-color: #2ecc71;" onclick="quickStatus('${room.id}', 'available')">Mark Available</button>`;
                 }
 
+                const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight: bold; color: var(--sidebar-bg);">${room.name} ${room.isVanessa ? '<span style="color:var(--vanessa-color); font-size:0.75rem;">(70/30)</span>' : ''}</td>
                     <td>${room.category}</td>
@@ -693,6 +725,7 @@
 
             addToBill(label, finalPrice, vanessaShare, resortShare, fullDetails);
             renderRoomsTable();
+            if(typeof renderRoomMap === 'function') renderRoomMap();
             closeModal();
         }
 
@@ -705,10 +738,112 @@
                 room.checkOut = '';
                 room.guestDisplay = '';
                 renderRoomsTable();
+                if(typeof renderRoomMap === 'function') renderRoomMap();
+            }
+        }
+
+
+        function renderRoomMap() {
+            const container = document.getElementById('room-map-container');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            const categories = ['Duplex', 'Row House', 'AC A-Frame', 'Regular A-Frame'];
+            
+            categories.forEach(cat => {
+                const catRooms = roomsDB.filter(r => r.category === cat);
+                if (catRooms.length === 0) return;
+                
+                const catDiv = document.createElement('div');
+                catDiv.style.marginBottom = '30px';
+                
+                const header = document.createElement('h3');
+                header.style.marginBottom = '15px';
+                header.style.color = 'var(--sidebar-bg)';
+                header.style.borderBottom = '2px solid #eee';
+                header.style.paddingBottom = '5px';
+                header.innerText = cat.toUpperCase() + (cat === 'Duplex' ? ' ROOMS' : '');
+                if(cat === 'Row House') header.innerText += 'S';
+                catDiv.appendChild(header);
+                
+                const gridDiv = document.createElement('div');
+                gridDiv.style.display = 'flex';
+                gridDiv.style.gap = '15px';
+                gridDiv.style.flexWrap = 'wrap';
+                
+                catRooms.forEach(room => {
+                    const box = document.createElement('div');
+                    box.style.width = '110px';
+                    box.style.height = '85px';
+                    box.style.borderRadius = '8px';
+                    box.style.display = 'flex';
+                    box.style.flexDirection = 'column';
+                    box.style.alignItems = 'center';
+                    box.style.justifyContent = 'center';
+                    box.style.color = 'white';
+                    box.style.fontWeight = 'bold';
+                    box.style.cursor = 'pointer';
+                    box.style.textAlign = 'center';
+                    box.style.padding = '5px';
+                    box.style.boxSizing = 'border-box';
+                    box.style.boxShadow = '0 3px 6px rgba(0,0,0,0.15)';
+                    box.style.transition = 'transform 0.2s';
+                    
+                    let bgColor = '#2ecc71'; 
+                    if (room.status === 'occupied') bgColor = '#e74c3c';
+                    else if (room.status === 'booked') bgColor = '#3498db';
+                    else if (room.status === 'cleaning') bgColor = '#f1c40f';
+                    
+                    box.style.backgroundColor = bgColor;
+                    if (room.status === 'cleaning') box.style.color = '#333';
+                    
+                    let shortName = room.name.replace('Duplex ', 'D-')
+                                             .replace('Row House ', 'RH-')
+                                             .replace('Regular A-Frame', 'Reg-')
+                                             .replace('AC A-Frame', 'AC-')
+                                             .replace(' (Daytour)', '(Day)')
+                                             .replace(' (Overnight)', '(Night)');
+                    
+                    box.innerHTML = `<div style="font-size: 1.1rem; margin-bottom: 5px;">${shortName}</div>`;
+                    
+                    box.onmouseover = () => box.style.transform = 'translateY(-3px)';
+                    box.onmouseout = () => box.style.transform = 'translateY(0)';
+                    
+                    box.onclick = () => handleMapClick(room.id);
+                    
+                    gridDiv.appendChild(box);
+                });
+                
+                catDiv.appendChild(gridDiv);
+                container.appendChild(catDiv);
+            });
+        }
+
+        function handleMapClick(roomId) {
+            const room = roomsDB.find(r => r.id === roomId);
+            if (!room) return;
+            if (room.status === 'available' || room.status === 'booked') {
+                openBookingModal(roomId);
+            } else if (room.status === 'occupied') {
+                checkoutRoom(roomId);
+            } else if (room.status === 'cleaning') {
+                if(confirm(`${room.name} is currently cleaning. Mark as Available?`)) {
+                    quickStatus(roomId, 'available');
+                }
+            }
+        }
+
+        function quickStatus(roomId, newStatus) {
+            const room = roomsDB.find(r => r.id === roomId);
+            if(room) {
+                room.status = newStatus;
+                renderRoomsTable();
+                renderRoomMap();
             }
         }
 
         // Initialize table
+        renderRoomMap();
         renderRoomsTable();
 
         // UI Routing
