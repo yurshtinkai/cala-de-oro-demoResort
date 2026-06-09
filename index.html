@@ -40,7 +40,7 @@
             user-select: none;
         }
         .sidebar {
-            width: 220px; background-color: var(--sidebar-bg); color: var(--light-text);
+            width: 270px; background-color: var(--sidebar-bg); color: var(--light-text);
             display: flex; flex-direction: column; padding-top: 20px; flex-shrink: 0;
             transition: width 0.3s ease;
             overflow-x: hidden;
@@ -2096,7 +2096,8 @@
             const sidebar = document.querySelector('.sidebar h2');
             const roleIndicator = document.createElement('div');
             roleIndicator.style.cssText = 'font-size: 0.75rem; color: #3498db; margin-top: 5px; font-weight: bold;';
-            roleIndicator.textContent = `Logged in as: ${role}`;
+            let displayRole = role === 'ADMIN' ? 'Manager' : role;
+            roleIndicator.textContent = `Logged in as: ${displayRole}`;
             sidebar.appendChild(roleIndicator);
 
             // For CEO role, make certain sections read-only
