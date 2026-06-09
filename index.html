@@ -42,14 +42,29 @@
         .sidebar {
             width: 220px; background-color: var(--sidebar-bg); color: var(--light-text);
             display: flex; flex-direction: column; padding-top: 20px; flex-shrink: 0;
+            transition: width 0.3s ease;
+            overflow-x: hidden;
+            white-space: nowrap;
         }
-        .sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 1.2rem; letter-spacing: 1px; }
+        .sidebar.minimized {
+            width: 60px;
+        }
+        .sidebar-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-bottom: 20px;
+        }
+        .sidebar h2 { text-align: center; font-size: 1.2rem; letter-spacing: 1px; margin: 0; transition: opacity 0.3s; }
+        .sidebar.minimized h2 { opacity: 0; width: 0; overflow: hidden; }
+        .sidebar-toggle {
+            background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; padding: 0; outline: none;
+        }
         .menu-btn {
-            background: none; border: none; color: var(--light-text); padding: 15px 20px;
+            background: none; border: none; color: var(--light-text); padding: 15px 15px;
             text-align: left; font-size: 1rem; cursor: pointer; transition: background 0.3s;
-            border-left: 4px solid transparent;
+            border-left: 4px solid transparent; display: flex; align-items: center;
         }
         .menu-btn:hover, .menu-btn.active { background-color: #34495e; border-left-color: var(--accent-color); }
+        .menu-icon { margin-right: 15px; font-size: 1.2rem; width: 25px; text-align: center; }
+        .sidebar.minimized .menu-text { display: none; }
 
         /* Main Content Styling */
         .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; position: relative; }
@@ -629,22 +644,41 @@
     <div id="dashboard-wrapper" class="blurred">
 
     <!-- SIDEBAR -->
-    <div class="sidebar print-hide">
-        <h2>CALA DE ORO<br><span style="font-size: 0.8rem; color: #aaa;">Sales Dashboard</span></h2>
-        <button class="menu-btn active" onclick="openSection('room-map', this)">Room Status Map</button>
-        <button class="menu-btn" onclick="openSection('rooms', this)">Rooms (Tables)</button>
-        <button class="menu-btn" onclick="openSection('entrance', this)">Entrance Fees</button>
-        <button class="menu-btn" onclick="openSection('corkage', this)">Corkage</button>
-        <button class="menu-btn" onclick="openSection('tents', this)">Tents & Equipment</button>
+    <div class="sidebar print-hide" id="main-sidebar">
+        <div class="sidebar-header">
+            <h2>CALA DE ORO<br><span style="font-size: 0.8rem; color: #aaa;">Sales Dashboard</span></h2>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        </div>
+        <button class="menu-btn active" onclick="openSection('room-map', this)">
+            <span class="menu-icon">🗺️</span><span class="menu-text">Room Status Map</span>
+        </button>
+        <button class="menu-btn" onclick="openSection('rooms', this)">
+            <span class="menu-icon">🛏️</span><span class="menu-text">Rooms (Tables)</span>
+        </button>
+        <button class="menu-btn" onclick="openSection('entrance', this)">
+            <span class="menu-icon">🎟️</span><span class="menu-text">Entrance Fees</span>
+        </button>
+        <button class="menu-btn" onclick="openSection('corkage', this)">
+            <span class="menu-icon">🍾</span><span class="menu-text">Corkage</span>
+        </button>
+        <button class="menu-btn" onclick="openSection('tents', this)">
+            <span class="menu-icon">⛺</span><span class="menu-text">Tents & Equipment</span>
+        </button>
 
-        <button class="menu-btn" onclick="openSection('outlets', this)">Resort Outlets</button>
-        <button class="menu-btn" onclick="openSection('other', this)">Other Sales</button>
+        <button class="menu-btn" onclick="openSection('outlets', this)">
+            <span class="menu-icon">🏪</span><span class="menu-text">Resort Outlets</span>
+        </button>
+        <button class="menu-btn" onclick="openSection('other', this)">
+            <span class="menu-icon">🛒</span><span class="menu-text">Other Sales</span>
+        </button>
         <hr style="border:0; border-top: 1px solid #455a64; margin: 20px 0; width: 100%;">
-        <button id="nav-reports-btn" class="menu-btn" onclick="openSection('reports-tab', this)" style="color: #2ecc71; font-weight: bold;">Reports & Analytics</button>
+        <button id="nav-reports-btn" class="menu-btn" onclick="openSection('reports-tab', this)" style="color: #2ecc71; font-weight: bold;">
+            <span class="menu-icon">📊</span><span class="menu-text">Reports & Analytics</span>
+        </button>
         
-        <div style="margin-top: auto; padding: 20px;">
-            <button onclick="handleLogout()" style="width: 100%; padding: 10px; background-color: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                🚪 Logout
+        <div style="margin-top: auto; padding: 20px 10px;">
+            <button onclick="handleLogout()" style="width: 100%; padding: 10px; background-color: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+                <span class="menu-icon" style="margin-right: 5px; margin-left: 0;">🚪</span><span class="menu-text">Logout</span>
             </button>
         </div>
     </div>
@@ -1454,6 +1488,20 @@
             }
             if (sectionId === 'rooms') {
                 showRoomCategories();
+            }
+
+            // Auto-minimize the sidebar so user gets max screen space
+            const sidebar = document.getElementById('main-sidebar');
+            if (sidebar && !sidebar.classList.contains('minimized')) {
+                sidebar.classList.add('minimized');
+            }
+        }
+
+        // Toggle sidebar manually via hamburger icon
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('minimized');
             }
         }
 
