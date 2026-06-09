@@ -79,12 +79,18 @@ The **Cala de Oro Internal Management System** is a staff-only web application d
 ```
 CEO (Executive)
     ↓
-ADMIN (Operations Manager)
+MANAGER (Operations Manager - renamed from ADMIN)
     ↓
-IT STAFF (Technical Admin)
+IT STAFF (Data Entry)
 ```
 
 **Total Roles:** 3 (Staff Only)
+
+**Key Changes:**
+- ADMIN renamed to MANAGER
+- IT STAFF role changed from system admin to data entry
+- MANAGER has full edit/delete permissions
+- IT STAFF can only input records, cannot edit/delete
 
 ### 3.2 Role Definitions
 
@@ -102,52 +108,65 @@ IT STAFF (Technical Admin)
 - ❌ Cannot modify bookings
 - ❌ Cannot manage users
 
-**Security:** Only CEO and ADMIN roles can access Reports & Analytics section.
+**Security:** Only CEO and MANAGER roles can access Reports & Analytics section.
 
 **Default View:** Reports & Analytics
 
 ---
 
-#### 3.2.2 ADMIN Role
+#### 3.2.2 MANAGER Role (Renamed from ADMIN)
 **Purpose:** Full operational control and staff supervision
 
 **Permissions:**
 - ✅ All operational modules
 - ✅ Room management (check-in/out, status)
 - ✅ Process all transactions
+- ✅ **Edit and delete all records** (including IT Staff inputs)
 - ✅ View financial reports (RESTRICTED ACCESS)
 - ✅ Guest management
 - ✅ Booking modifications
 - ✅ Inventory management
 - ✅ View user list
-- ⚠️ Limited user creation (not CEO/ADMIN roles)
+- ⚠️ Limited user creation (not CEO/MANAGER roles)
 - ❌ Cannot access system settings
 
-**Security:** Only CEO and ADMIN roles can access Reports & Analytics section.
+**Workflow:**
+1. IT Staff inputs records (transactions, bookings)
+2. Manager reviews all submitted records
+3. Manager can edit or delete any record
+4. Manager has final authority on all operational data
+
+**Security:** Only CEO and MANAGER roles can access Reports & Analytics section.
 
 **Default View:** Room Status Map
 
 ---
 
 #### 3.2.3 IT STAFF Role
-**Purpose:** System administration and technical support
+**Purpose:** Data entry and operational support
 
 **Permissions:**
-- ✅ Full user management (CRUD operations)
-- ✅ System settings and configuration
-- ✅ Database backups
-- ✅ Audit logs and security
-- ✅ All operational modules (for troubleshooting)
-- ✅ Integration monitoring
-- ✅ Technical reports
-- ✅ Create users with any role
-- ❌ **Cannot access Financial Reports & Analytics** (restricted to CEO and ADMIN only)
+- ✅ Input transactions (room bookings, entrance fees, corkage, tents, outlets)
+- ✅ Process customer payments
+- ✅ Create bookings
+- ✅ View room status
+- ✅ Access all operational modules (for data entry)
+- ❌ **Cannot edit or delete records after submission**
+- ❌ **Cannot access Financial Reports & Analytics** (restricted to CEO and MANAGER only)
+- ❌ Cannot manage users
+- ❌ Cannot access system settings
 
-**Security:** IT Staff does NOT have access to the CEO Executive Dashboard or Financial Reports for security and separation of duties. Only CEO and ADMIN roles can view financial data.
+**Workflow:**
+1. IT Staff inputs customer transactions
+2. All inputs are tracked with user email and role
+3. Records are submitted to MANAGER for review
+4. IT Staff can view but not modify submitted records
 
-**Default View:** User Management Dashboard
+**Security:** IT Staff does NOT have access to the CEO Executive Dashboard or Financial Reports for security and separation of duties. Only CEO and MANAGER roles can view financial data and edit/delete records.
 
-**Note:** IT Staff maintains full operational and system administration capabilities but financial reporting access is restricted to maintain proper separation of duties and data security.
+**Default View:** Room Status Map
+
+**Note:** IT Staff maintains data entry capabilities but cannot modify records after submission. All records are tracked with creator information for audit purposes.
 
 ---
 
@@ -167,7 +186,7 @@ IT STAFF (Technical Admin)
 
 **Credentials (Demo - Staff Only):**
 - CEO: ceo@caladeoro.com / ceo123
-- ADMIN: admin@caladeoro.com / admin123
+- MANAGER: manager@caladeoro.com / manager123
 - IT: it@caladeoro.com / it123
 
 ---

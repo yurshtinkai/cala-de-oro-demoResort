@@ -562,7 +562,7 @@
                 <!-- 
                 DEMO CREDENTIALS (Staff Only - 3 Roles):
                 CEO: ceo@caladeoro.com / ceo123
-                ADMIN: admin@caladeoro.com / admin123
+                MANAGER: manager@caladeoro.com / manager123
                 IT STAFF: it@caladeoro.com / it123
                 -->
 
@@ -1468,10 +1468,10 @@
                 return;
             }
             
-            // Restrict reports access to CEO and ADMIN only
+            // Restrict reports access to CEO and MANAGER only
             if (sectionId === 'reports-tab') {
-                if (userRole !== 'CEO' && userRole !== 'ADMIN') {
-                    alert('Access Denied: Only CEO and ADMIN roles can view reports.');
+                if (userRole !== 'CEO' && userRole !== 'MANAGER') {
+                    alert('Access Denied: Only CEO and MANAGER roles can view reports.');
                     return;
                 }
             }
@@ -1541,23 +1541,70 @@
 
             const now = new Date();
             const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            transactionDatabase.push({ time: timeString, name: itemName, gross: totalCost, vanessa: vanessaShare, resort: resortShare, qty: qty });
+            const transactionId = 'TXN-' + Date.now(); // Unique ID for each transaction
+            const userEmail = sessionStorage.getItem('userEmail') || 'unknown';
+            const userRole = sessionStorage.getItem('userRole') || 'unknown';
+            
+            transactionDatabase.push({ 
+                id: transactionId,
+                time: timeString, 
+                name: itemName, 
+                gross: totalCost, 
+                vanessa: vanessaShare, 
+                resort: resortShare, 
+                qty: qty,
+                createdBy: userEmail,
+                createdByRole: userRole,
+                timestamp: Date.now()
+            });
 
             const displayLabel = dashboardDetails ? dashboardDetails : itemName;
 
             const cartContainer = document.getElementById('cart-items');
             const logEntry = document.createElement('div');
             logEntry.className = 'log-entry';
+            logEntry.id = transactionId;
+            
+            let actionButtons = '';
+            const currentRole = sessionStorage.getItem('userRole');
+            
+            // Only MANAGER can edit or delete records
+            if (currentRole === 'MANAGER') {
+                actionButtons = `
+                    <div style="margin-top: 8px; display: flex; gap: 5px;">
+                        <button onclick="editTransaction('${transactionId}')" style="padding: 4px 8px; background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.75rem;">✏️ Edit</button>
+                        <button onclick="deleteTransaction('${transactionId}')" style="padding: 4px 8px; background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.75rem;">🗑️ Delete</button>
+                    </div>
+                `;
+            }
             
             if (vanessaShare > 0) {
-                logEntry.innerHTML = `<strong>${displayLabel}</strong> <br> Paid: ₱${totalCost.toLocaleString()}
-                    <div class="split-details">
-                        <span style="color: var(--vanessa-color);">Vanessa: ₱${vanessaShare.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
-                        <span style="color: var(--success-color);">Resort: ₱${resortShare.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
-                    </div>`;
+                logEntry.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <strong>${displayLabel}</strong>
+                            <br> Paid: ₱${totalCost.toLocaleString()}
+                            <div class="split-details">
+                                <span style="color: var(--vanessa-color);">Vanessa: ₱${vanessaShare.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                                <span style="color: var(--success-color);">Resort: ₱${resortShare.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            </div>
+                            <div style="font-size: 0.7rem; color: #999; margin-top: 3px;">By: ${userEmail} (${userRole})</div>
+                            ${actionButtons}
+                        </div>
+                    </div>
+                `;
             } else {
-                logEntry.innerHTML = `<strong>${displayLabel}</strong> <br> Paid: ₱${totalCost.toLocaleString()}
-                    <div class="split-details"><span style="color: var(--success-color);">Resort: ₱${resortShare.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>`;
+                logEntry.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <strong>${displayLabel}</strong>
+                            <br> Paid: ₱${totalCost.toLocaleString()}
+                            <div class="split-details"><span style="color: var(--success-color);">Resort: ₱${resortShare.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>
+                            <div style="font-size: 0.7rem; color: #999; margin-top: 3px;">By: ${userEmail} (${userRole})</div>
+                            ${actionButtons}
+                        </div>
+                    </div>
+                `;
             }
             cartContainer.appendChild(logEntry);
             cartContainer.scrollTop = cartContainer.scrollHeight;
@@ -1569,6 +1616,169 @@
             document.getElementById('customer-total').innerText = '₱' + totalCustomerBill.toLocaleString();
             document.getElementById('vanessa-total').innerText = '₱' + totalVanessaRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('ceo-total').innerText = '₱' + totalCeoRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function editTransaction(transactionId) {
+            const currentRole = sessionStorage.getItem('userRole');
+            if (currentRole !== 'MANAGER') {
+                alert('Access Denied: Only MANAGER can edit records.');
+                return;
+            }
+
+            const transaction = transactionDatabase.find(t => t.id === transactionId);
+            if (!transaction) {
+                alert('Transaction not found.');
+                return;
+            }
+
+            const newAmount = prompt(`Edit transaction amount for "${transaction.name}":\n\nCurrent: ₱${transaction.gross}`, transaction.gross);
+            
+            if (newAmount === null) return; // User cancelled
+            
+            const parsedAmount = parseFloat(newAmount);
+            if (isNaN(parsedAmount) || parsedAmount < 0) {
+                alert('Invalid amount. Please enter a valid number.');
+                return;
+            }
+
+            // Calculate the difference
+            const difference = parsedAmount - transaction.gross;
+            
+            // Update the transaction
+            transaction.gross = parsedAmount;
+            
+            // Recalculate split if it was a Vanessa share
+            if (transaction.vanessa > 0) {
+                const totalBefore = transaction.vanessa + transaction.resort;
+                const vanessaPercentage = transaction.vanessa / totalBefore;
+                transaction.vanessa = parsedAmount * vanessaPercentage;
+                transaction.resort = parsedAmount * (1 - vanessaPercentage);
+            } else {
+                transaction.resort = parsedAmount;
+            }
+
+            // Update totals
+            totalCustomerBill += difference;
+            totalCeoRevenue += (transaction.resort - (transaction.resort - difference * (transaction.resort / (transaction.vanessa + transaction.resort || 1))));
+            
+            // Recalculate all totals properly
+            recalculateTotals();
+            
+            // Update the display
+            refreshTransactionDisplay();
+            
+            alert('Transaction updated successfully!');
+        }
+
+        function deleteTransaction(transactionId) {
+            const currentRole = sessionStorage.getItem('userRole');
+            if (currentRole !== 'MANAGER') {
+                alert('Access Denied: Only MANAGER can delete records.');
+                return;
+            }
+
+            const transaction = transactionDatabase.find(t => t.id === transactionId);
+            if (!transaction) {
+                alert('Transaction not found.');
+                return;
+            }
+
+            if (!confirm(`Delete this transaction?\n\n${transaction.name}\nAmount: ₱${transaction.gross.toLocaleString()}\n\nThis action cannot be undone.`)) {
+                return;
+            }
+
+            // Remove from database
+            const index = transactionDatabase.findIndex(t => t.id === transactionId);
+            if (index > -1) {
+                transactionDatabase.splice(index, 1);
+            }
+
+            // Recalculate totals
+            recalculateTotals();
+            
+            // Update the display
+            refreshTransactionDisplay();
+            
+            alert('Transaction deleted successfully!');
+        }
+
+        function recalculateTotals() {
+            totalCustomerBill = 0;
+            totalVanessaRevenue = 0;
+            totalCeoRevenue = 0;
+
+            transactionDatabase.forEach(tx => {
+                totalCustomerBill += tx.gross;
+                totalVanessaRevenue += tx.vanessa;
+                totalCeoRevenue += tx.resort;
+            });
+
+            document.getElementById('customer-total').innerText = '₱' + totalCustomerBill.toLocaleString();
+            document.getElementById('vanessa-total').innerText = '₱' + totalVanessaRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('ceo-total').innerText = '₱' + totalCeoRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function refreshTransactionDisplay() {
+            const cartContainer = document.getElementById('cart-items');
+            cartContainer.innerHTML = '';
+            
+            const currentRole = sessionStorage.getItem('userRole');
+            
+            if (transactionDatabase.length === 0) {
+                const emptyMsg = document.getElementById('empty-msg');
+                if (emptyMsg) emptyMsg.style.display = 'block';
+                return;
+            }
+
+            transactionDatabase.forEach(tx => {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                logEntry.id = tx.id;
+                
+                let actionButtons = '';
+                
+                // Only MANAGER can edit or delete records
+                if (currentRole === 'MANAGER') {
+                    actionButtons = `
+                        <div style="margin-top: 8px; display: flex; gap: 5px;">
+                            <button onclick="editTransaction('${tx.id}')" style="padding: 4px 8px; background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.75rem;">✏️ Edit</button>
+                            <button onclick="deleteTransaction('${tx.id}')" style="padding: 4px 8px; background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.75rem;">🗑️ Delete</button>
+                        </div>
+                    `;
+                }
+                
+                if (tx.vanessa > 0) {
+                    logEntry.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <strong>${tx.name}</strong>
+                                <br> Paid: ₱${tx.gross.toLocaleString()}
+                                <div class="split-details">
+                                    <span style="color: var(--vanessa-color);">Vanessa: ₱${tx.vanessa.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                                    <span style="color: var(--success-color);">Resort: ₱${tx.resort.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                                </div>
+                                <div style="font-size: 0.7rem; color: #999; margin-top: 3px;">By: ${tx.createdBy} (${tx.createdByRole})</div>
+                                ${actionButtons}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    logEntry.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <strong>${tx.name}</strong>
+                                <br> Paid: ₱${tx.gross.toLocaleString()}
+                                <div class="split-details"><span style="color: var(--success-color);">Resort: ₱${tx.resort.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>
+                                <div style="font-size: 0.7rem; color: #999; margin-top: 3px;">By: ${tx.createdBy} (${tx.createdByRole})</div>
+                                ${actionButtons}
+                            </div>
+                        </div>
+                    `;
+                }
+                cartContainer.appendChild(logEntry);
+            });
+            
+            cartContainer.scrollTop = cartContainer.scrollHeight;
         }
 
         function generateMonthlyReport() {
@@ -2000,16 +2210,16 @@
                 return;
             }
 
-            // Role-based authentication (3 roles: CEO, ADMIN, IT)
+            // Role-based authentication (3 roles: CEO, MANAGER, IT)
             let userRole = null;
             
             // CEO Login
             if (email === 'ceo@caladeoro.com' && password === 'ceo123') {
                 userRole = 'CEO';
             }
-            // Admin Login
-            else if (email === 'admin@caladeoro.com' && password === 'admin123') {
-                userRole = 'ADMIN';
+            // Manager Login (renamed from Admin)
+            else if (email === 'manager@caladeoro.com' && password === 'manager123') {
+                userRole = 'MANAGER';
             }
             // IT Staff Login
             else if (email === 'it@caladeoro.com' && password === 'it123') {
@@ -2046,22 +2256,26 @@
             // Get all menu buttons
             const menuButtons = document.querySelectorAll('.menu-btn');
             
-            // Define role permissions (3 roles: CEO, ADMIN, IT)
+            // Define role permissions (3 roles: CEO, MANAGER, IT)
             const permissions = {
                 'CEO': {
                     allowedSections: ['room-map', 'rooms', 'reports-tab'],
                     readOnlySections: ['room-map', 'rooms'],
                     hiddenSections: ['entrance', 'corkage', 'tents', 'outlets', 'other']
                 },
-                'ADMIN': {
+                'MANAGER': {
                     allowedSections: ['room-map', 'rooms', 'entrance', 'corkage', 'tents', 'outlets', 'other', 'reports-tab'],
                     readOnlySections: [],
-                    hiddenSections: []
+                    hiddenSections: [],
+                    canEdit: true,
+                    canDelete: true
                 },
                 'IT': {
                     allowedSections: ['room-map', 'rooms', 'entrance', 'corkage', 'tents', 'outlets', 'other'],
                     readOnlySections: [],
-                    hiddenSections: ['reports-tab']
+                    hiddenSections: ['reports-tab'],
+                    canEdit: false,
+                    canDelete: false
                 }
             };
 
@@ -2084,9 +2298,9 @@
                 }
             });
             
-            // Explicitly ensure Reports button is visible for ADMIN and CEO only
+            // Explicitly ensure Reports button is visible for MANAGER and CEO only
             const reportsBtn = document.getElementById('nav-reports-btn');
-            if (reportsBtn && (role === 'ADMIN' || role === 'CEO')) {
+            if (reportsBtn && (role === 'MANAGER' || role === 'CEO')) {
                 reportsBtn.style.display = 'block';
             } else if (reportsBtn) {
                 reportsBtn.style.display = 'none';
@@ -2096,8 +2310,7 @@
             const sidebar = document.querySelector('.sidebar h2');
             const roleIndicator = document.createElement('div');
             roleIndicator.style.cssText = 'font-size: 0.75rem; color: #3498db; margin-top: 5px; font-weight: bold;';
-            let displayRole = role === 'ADMIN' ? 'Manager' : role;
-            roleIndicator.textContent = `Logged in as: ${displayRole}`;
+            roleIndicator.textContent = `Logged in as: ${role}`;
             sidebar.appendChild(roleIndicator);
 
             // For CEO role, make certain sections read-only

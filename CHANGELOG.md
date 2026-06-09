@@ -1,5 +1,158 @@
 # Changelog - Cala de Oro Internal Management System
 
+## [2.0.0] - 2026-06-09
+
+### 🔄 Major Update - Role Restructure & Review Workflow
+
+#### Breaking Changes:
+- **ADMIN Role Renamed to MANAGER**
+  - Login changed from `admin@caladeoro.com` to `manager@caladeoro.com`
+  - All references updated throughout codebase
+  - Display name changed from "ADMIN" to "MANAGER"
+
+#### New Features:
+
+**1. Transaction Edit & Delete System**
+- ✅ Manager can edit transaction amounts
+- ✅ Manager can delete transactions
+- ✅ Automatic total recalculation after edits/deletes
+- ✅ Confirmation dialogs for destructive actions
+- ✅ Revenue split calculations preserved during edits
+
+**2. Enhanced Transaction Tracking**
+- ✅ Each transaction now includes unique ID
+- ✅ Creator email tracked on every transaction
+- ✅ Creator role tracked on every transaction
+- ✅ Unix timestamp for audit purposes
+- ✅ Transaction display shows "By: email (ROLE)"
+
+**3. Role-Based UI Controls**
+- ✅ Edit/Delete buttons only visible to MANAGER
+- ✅ IT Staff sees transactions but cannot modify
+- ✅ Permission checks enforced at action level
+- ✅ Access denied alerts for unauthorized attempts
+
+#### Role Changes:
+
+**IT STAFF (Data Entry Role)**
+- Purpose changed from "System Administrator" to "Data Entry"
+- ✅ Can input all transaction types
+- ✅ Can create bookings
+- ✅ Can view room status
+- ❌ Cannot edit records after submission
+- ❌ Cannot delete any records
+- ❌ Cannot access financial reports
+- ❌ Cannot manage users or system settings
+
+**MANAGER (Review & Control Role)**
+- Renamed from ADMIN
+- ✅ All previous ADMIN permissions
+- ✅ **NEW:** Edit any transaction
+- ✅ **NEW:** Delete any transaction
+- ✅ Full access to financial reports
+- ✅ Final authority on all operational data
+- ✅ Can modify records created by IT Staff
+
+**CEO (No Changes)**
+- Read-only access maintained
+- Reports and analytics access unchanged
+- Strategic oversight only
+
+#### New Workflow:
+
+```
+1. IT Staff inputs transaction
+   → Record tagged with creator info
+   → Visible to Manager immediately
+   
+2. Manager reviews records
+   → Can edit amounts
+   → Can delete entries
+   → All changes recalculate totals
+   
+3. CEO views final reports
+   → All data after Manager review
+   → Read-only analytics
+```
+
+#### Technical Implementation:
+
+**New Functions:**
+```javascript
+editTransaction(transactionId)      // Edit transaction amount
+deleteTransaction(transactionId)    // Delete transaction
+recalculateTotals()                // Recalculate all totals
+refreshTransactionDisplay()         // Refresh transaction UI
+```
+
+**Updated Functions:**
+```javascript
+addToBill()                        // Now tracks creator and ID
+applyRoleBasedAccess()             // Updated permissions
+```
+
+**Data Structure Changes:**
+```javascript
+// Transaction object now includes:
+{
+    id: 'TXN-{timestamp}',
+    createdBy: 'user@email.com',
+    createdByRole: 'IT|MANAGER|CEO',
+    timestamp: 1717920000000
+}
+```
+
+#### Files Modified:
+- ✅ `index.html` - Role restructure, edit/delete system
+- ✅ `.kiro/specs/internal-management-system.md` - Updated documentation
+
+#### Files Added:
+- ✅ `ROLE-RESTRUCTURE-IMPLEMENTATION.md` - Technical implementation details
+- ✅ `WORKFLOW-GUIDE.md` - User workflow documentation
+
+#### Migration Guide:
+
+**Old Login (DEPRECATED):**
+```
+admin@caladeoro.com / admin123  ❌ No longer works
+```
+
+**New Login:**
+```
+manager@caladeoro.com / manager123  ✅ Use this instead
+```
+
+**For Existing Users:**
+1. CEO and IT Staff logins unchanged
+2. ADMIN users must use new MANAGER credentials
+3. All existing transaction data preserved
+4. No data migration required
+
+#### Security Enhancements:
+- ✅ Role-based action enforcement
+- ✅ Creator tracking for audit trail
+- ✅ Permission checks on edit/delete
+- ✅ Confirmation dialogs prevent accidents
+- ✅ Automatic session validation
+
+#### Testing Checklist:
+- [x] Login with manager@caladeoro.com works
+- [x] Login with admin@caladeoro.com fails
+- [x] IT Staff can input transactions
+- [x] IT Staff cannot see edit/delete buttons
+- [x] IT Staff cannot access reports
+- [x] Manager can edit transactions
+- [x] Manager can delete transactions
+- [x] CEO has read-only access
+- [x] Creator info displays correctly
+- [x] Totals recalculate after edits
+- [x] Confirmation dialogs work
+
+#### Breaking Changes Warning:
+⚠️ **IMPORTANT:** Old admin login credentials no longer work. Update saved passwords!
+
+---
+
 ## [1.3.1] - 2024-03-21
 
 ### 🐛 Fixed - IT Staff Reports Access
