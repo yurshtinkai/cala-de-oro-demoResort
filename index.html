@@ -176,6 +176,10 @@
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
 
         /* CEO DASHBOARD STYLES */
         .ceo-dashboard-grid {
@@ -672,6 +676,9 @@
             <span class="menu-icon">🛒</span><span class="menu-text">Other Sales</span>
         </button>
         <hr style="border:0; border-top: 1px solid #455a64; margin: 20px 0; width: 100%;">
+        <button id="nav-manager-dashboard-btn" class="menu-btn" onclick="openSection('manager-dashboard', this)" style="color: #f39c12; font-weight: bold; display: none;">
+            <span class="menu-icon">👔</span><span class="menu-text">Manager Dashboard</span>
+        </button>
         <button id="nav-reports-btn" class="menu-btn" onclick="openSection('reports-tab', this)" style="color: #2ecc71; font-weight: bold;">
             <span class="menu-icon">📊</span><span class="menu-text">Reports & Analytics</span>
         </button>
@@ -694,9 +701,10 @@
             <!-- Legend -->
             <div style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                 <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#2ecc71; border-radius: 4px;"></div> Available</div>
-                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#3498db; border-radius: 4px;"></div> Booked in Advance</div>
-                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#e74c3c; border-radius: 4px;"></div> Occupied</div>
-                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#f1c40f; border-radius: 4px;"></div> Cleaning</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#3498db; border-radius: 4px;"></div> Booked (Future)</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#e74c3c; border-radius: 4px;"></div> Check-in Today / Occupied</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: bold;"><div style="width:25px; height:25px; background:#f1c40f; border-radius: 4px;"></div> Cleaning (Auto-set after checkout)</div>
+                <div style="font-size: 0.85rem; color: #666; margin-left: 10px; font-style: italic;">⏱️ Occupied rooms show countdown timer | 🕐 Extend stay: ₱300/hour</div>
             </div>
 
             <div id="room-map-container"></div>
@@ -962,6 +970,84 @@
             </div>
         </div>
 
+        <!-- MANAGER DASHBOARD SECTION -->
+        <div id="manager-dashboard" class="section-content">
+            <h1 class="header-title">👔 Manager Dashboard - Staff Activity Monitor</h1>
+            <p style="color: #666; margin-top: -10px; margin-bottom: 25px;">Monitor real-time staff activities, approve transactions, and manage operations.</p>
+
+            <!-- Live Staff Status -->
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;">
+                <h2 style="margin-top: 0; color: var(--sidebar-bg); display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.8rem;">👥</span> Active Staff Members
+                </h2>
+                <div id="active-staff-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                    <!-- Staff cards will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="kpi-card" style="border-left-color: #3498db;">
+                    <h3>Today's Transactions</h3>
+                    <div class="kpi-value" id="mgr-today-transactions">0</div>
+                    <div style="font-size: 0.85rem; color: #666;">By IT Staff</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: #27ae60;">
+                    <h3>Total Revenue</h3>
+                    <div class="kpi-value" id="mgr-today-revenue">₱0</div>
+                    <div style="font-size: 0.85rem; color: #666;">Processed Today</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: #e67e22;">
+                    <h3>Rooms Booked</h3>
+                    <div class="kpi-value" id="mgr-rooms-booked">0</div>
+                    <div style="font-size: 0.85rem; color: #666;">Today</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: #e74c3c;">
+                    <h3>Last Activity</h3>
+                    <div class="kpi-value" id="mgr-last-activity" style="font-size: 1.5rem;">Just now</div>
+                    <div style="font-size: 0.85rem; color: #666;">Most recent</div>
+                </div>
+            </div>
+
+            <!-- Activity Timeline -->
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0; color: var(--sidebar-bg); display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.8rem;">📋</span> Recent Staff Activities
+                    </h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="filterActivities('all')" class="activity-filter-btn active" data-filter="all" style="padding: 8px 15px; border: 2px solid #3498db; background: #3498db; color: white; border-radius: 5px; cursor: pointer; font-weight: bold;">All</button>
+                        <button onclick="filterActivities('transactions')" class="activity-filter-btn" data-filter="transactions" style="padding: 8px 15px; border: 2px solid #ddd; background: white; color: #666; border-radius: 5px; cursor: pointer; font-weight: bold;">Transactions</button>
+                        <button onclick="filterActivities('bookings')" class="activity-filter-btn" data-filter="bookings" style="padding: 8px 15px; border: 2px solid #ddd; background: white; color: #666; border-radius: 5px; cursor: pointer; font-weight: bold;">Bookings</button>
+                        <button onclick="filterActivities('status')" class="activity-filter-btn" data-filter="status" style="padding: 8px 15px; border: 2px solid #ddd; background: white; color: #666; border-radius: 5px; cursor: pointer; font-weight: bold;">Status Changes</button>
+                        <button onclick="clearActivityLog()" style="padding: 8px 15px; border: 2px solid #e74c3c; background: white; color: #e74c3c; border-radius: 5px; cursor: pointer; font-weight: bold;">Clear Log</button>
+                    </div>
+                </div>
+                
+                <div id="activity-timeline" style="max-height: 500px; overflow-y: auto;">
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">📭</div>
+                        <div style="font-size: 1.1rem;">No activities yet</div>
+                        <div style="font-size: 0.9rem; margin-top: 5px;">Staff activities will appear here in real-time</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Approvals -->
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                <h2 style="margin-top: 0; color: var(--sidebar-bg); display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.8rem;">⏳</span> Pending Actions
+                    <span id="pending-count-badge" style="background: #e74c3c; color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; margin-left: 10px;">0</span>
+                </h2>
+                <div id="pending-actions-list">
+                    <div style="text-align: center; padding: 30px; color: #999;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">✅</div>
+                        <div>All caught up! No pending actions.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- REPORTS TAB -->
         <div id="reports-tab" class="section-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -1168,14 +1254,484 @@
         </div>
     </div>
 
+    <!-- EXTENSION MODAL -->
+    <div class="modal-overlay" id="extension-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeExtensionModal()">×</button>
+            <h2>🕐 Guest Stay Extension</h2>
+            <p style="color: #666; margin-bottom: 20px;">Guest wishes to extend their stay beyond the standard 12:00 PM checkout time.</p>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <strong>Extension Rate:</strong> ₱300 per hour for all room types
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px;">Room:</label>
+                <input type="text" id="ext-room-name" class="custom-input" readonly style="background: #f5f5f5;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px;">Current Checkout:</label>
+                <input type="text" id="ext-current-checkout" class="custom-input" readonly style="background: #f5f5f5;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px;">Extension Hours:</label>
+                <select id="ext-hours" class="custom-input" onchange="calculateExtensionCost()">
+                    <option value="">Select hours...</option>
+                    <option value="1">1 hour (until 1:00 PM)</option>
+                    <option value="2">2 hours (until 2:00 PM)</option>
+                    <option value="3">3 hours (until 3:00 PM)</option>
+                    <option value="4">4 hours (until 4:00 PM)</option>
+                    <option value="5">5 hours (until 5:00 PM)</option>
+                    <option value="6">6 hours (until 6:00 PM)</option>
+                    <option value="8">8 hours (until 8:00 PM)</option>
+                    <option value="12">12 hours (until 12:00 AM +1)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px;">New Checkout Time:</label>
+                <input type="text" id="ext-new-checkout" class="custom-input" readonly style="background: #f5f5f5;">
+            </div>
+
+            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none;" id="ext-cost-summary">
+                <div style="font-size: 1.1rem; font-weight: bold; color: #27ae60;">
+                    Extension Cost: ₱<span id="ext-total-cost">0</span>
+                </div>
+                <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
+                    <span id="ext-hours-text">0</span> hours × ₱300 = ₱<span id="ext-calculation">0</span>
+                </div>
+            </div>
+
+            <input type="hidden" id="ext-room-id" value="">
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="submit-btn" onclick="confirmExtension()" style="flex: 1; background-color: #27ae60;">Confirm Extension</button>
+                <button class="submit-btn" onclick="closeExtensionModal()" style="flex: 1; background-color: #95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let totalCeoRevenue = 0;
         let totalVanessaRevenue = 0;
         let totalCustomerBill = 0;
         let transactionDatabase = []; 
+        
+        // ============================================
+        // MANAGER DASHBOARD - ACTIVITY TRACKING SYSTEM
+        // ============================================
+        
+        let activityLog = [];
+        let currentActivityFilter = 'all';
+        
+        /**
+         * Log staff activity for Manager Dashboard
+         */
+        function logStaffActivity(type, description, details = {}) {
+            const userEmail = sessionStorage.getItem('userEmail') || 'unknown';
+            const userRole = sessionStorage.getItem('userRole') || 'unknown';
+            
+            // Only log IT Staff activities (not Manager/CEO)
+            if (userRole !== 'IT') return;
+            
+            const activity = {
+                id: 'ACT-' + Date.now(),
+                timestamp: new Date(),
+                user: userEmail,
+                role: userRole,
+                type: type, // 'transaction', 'booking', 'checkin', 'checkout', 'status'
+                description: description,
+                details: details,
+                canUndo: true,
+                status: 'completed'
+            };
+            
+            activityLog.unshift(activity); // Add to beginning
+            
+            // Keep only last 100 activities
+            if (activityLog.length > 100) {
+                activityLog = activityLog.slice(0, 100);
+            }
+            
+            // Save to localStorage
+            try {
+                localStorage.setItem('staffActivityLog', JSON.stringify(activityLog));
+            } catch (e) {
+                console.log('Could not save activity log');
+            }
+            
+            // Update Manager Dashboard if it's open
+            updateManagerDashboard();
+        }
+        
+        /**
+         * Load activity log from localStorage
+         */
+        function loadActivityLog() {
+            try {
+                const saved = localStorage.getItem('staffActivityLog');
+                if (saved) {
+                    activityLog = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.log('Could not load activity log');
+                activityLog = [];
+            }
+        }
+        
+        /**
+         * Update Manager Dashboard displays
+         */
+        function updateManagerDashboard() {
+            // Update active staff list
+            updateActiveStaffList();
+            
+            // Update statistics
+            updateManagerStats();
+            
+            // Update activity timeline
+            renderActivityTimeline();
+            
+            // Update pending actions
+            updatePendingActions();
+        }
+        
+        /**
+         * Update active staff list
+         */
+        function updateActiveStaffList() {
+            const container = document.getElementById('active-staff-list');
+            if (!container) return;
+            
+            // Get unique staff members from recent activities
+            const recentActivities = activityLog.slice(0, 20);
+            const staffMap = new Map();
+            
+            recentActivities.forEach(activity => {
+                if (!staffMap.has(activity.user)) {
+                    staffMap.set(activity.user, {
+                        email: activity.user,
+                        role: activity.role,
+                        lastActivity: activity.timestamp,
+                        activityCount: 1
+                    });
+                } else {
+                    const staff = staffMap.get(activity.user);
+                    staff.activityCount++;
+                }
+            });
+            
+            container.innerHTML = '';
+            
+            if (staffMap.size === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #999;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">👤</div>
+                        <div>No active staff members</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            staffMap.forEach((staff, email) => {
+                const timeSince = getTimeSince(staff.lastActivity);
+                const isActive = new Date() - staff.lastActivity < 300000; // Active if < 5 min
+                
+                const card = document.createElement('div');
+                card.style.cssText = 'background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid ' + (isActive ? '#27ae60' : '#95a5a6');
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                        <div style="font-weight: bold; color: var(--sidebar-bg);">
+                            ${staff.role}
+                            <div style="font-size: 0.8rem; color: #666; font-weight: normal; margin-top: 3px;">${email}</div>
+                        </div>
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isActive ? '#27ae60' : '#95a5a6'};"></div>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #666;">
+                        <div>📊 ${staff.activityCount} actions today</div>
+                        <div>⏱️ Last seen: ${timeSince}</div>
+                        <div>Status: ${isActive ? '<span style="color: #27ae60;">🟢 Active</span>' : '<span style="color: #95a5a6;">⚪ Idle</span>'}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        /**
+         * Update manager statistics
+         */
+        function updateManagerStats() {
+            // Count today's activities
+            const today = new Date().toDateString();
+            const todayActivities = activityLog.filter(a => new Date(a.timestamp).toDateString() === today);
+            
+            const transactionCount = todayActivities.filter(a => a.type === 'transaction').length;
+            const bookingCount = todayActivities.filter(a => a.type === 'booking' || a.type === 'checkin').length;
+            
+            // Calculate total revenue from activities
+            let totalRevenue = 0;
+            todayActivities.forEach(activity => {
+                if (activity.details.amount) {
+                    totalRevenue += activity.details.amount;
+                }
+            });
+            
+            // Update displays
+            const transEl = document.getElementById('mgr-today-transactions');
+            const revenueEl = document.getElementById('mgr-today-revenue');
+            const roomsEl = document.getElementById('mgr-rooms-booked');
+            const lastActivityEl = document.getElementById('mgr-last-activity');
+            
+            if (transEl) transEl.textContent = transactionCount;
+            if (revenueEl) revenueEl.textContent = '₱' + totalRevenue.toLocaleString();
+            if (roomsEl) roomsEl.textContent = bookingCount;
+            
+            if (lastActivityEl && activityLog.length > 0) {
+                const timeSince = getTimeSince(activityLog[0].timestamp);
+                lastActivityEl.textContent = timeSince;
+            }
+        }
+        
+        /**
+         * Render activity timeline
+         */
+        function renderActivityTimeline() {
+            const container = document.getElementById('activity-timeline');
+            if (!container) return;
+            
+            let filteredActivities = activityLog;
+            
+            // Apply filter
+            if (currentActivityFilter !== 'all') {
+                if (currentActivityFilter === 'transactions') {
+                    filteredActivities = activityLog.filter(a => a.type === 'transaction');
+                } else if (currentActivityFilter === 'bookings') {
+                    filteredActivities = activityLog.filter(a => a.type === 'booking' || a.type === 'checkin' || a.type === 'checkout');
+                } else if (currentActivityFilter === 'status') {
+                    filteredActivities = activityLog.filter(a => a.type === 'status');
+                }
+            }
+            
+            if (filteredActivities.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">📭</div>
+                        <div style="font-size: 1.1rem;">No ${currentActivityFilter === 'all' ? '' : currentActivityFilter} activities</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            filteredActivities.forEach(activity => {
+                const timeStr = formatActivityTime(activity.timestamp);
+                const timeSince = getTimeSince(activity.timestamp);
+                
+                // Get icon and color based on type
+                let icon = '📝';
+                let color = '#3498db';
+                if (activity.type === 'transaction') { icon = '💰'; color = '#27ae60'; }
+                if (activity.type === 'booking') { icon = '📅'; color = '#3498db'; }
+                if (activity.type === 'checkin') { icon = '✅'; color = '#27ae60'; }
+                if (activity.type === 'checkout') { icon = '🚪'; color = '#e67e22'; }
+                if (activity.type === 'status') { icon = '🔄'; color = '#95a5a6'; }
+                
+                const activityCard = document.createElement('div');
+                activityCard.style.cssText = 'background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ' + color + '; display: flex; justify-content: space-between; align-items: start;';
+                activityCard.innerHTML = `
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <span style="font-size: 1.5rem;">${icon}</span>
+                            <div>
+                                <div style="font-weight: bold; color: var(--sidebar-bg);">${activity.description}</div>
+                                <div style="font-size: 0.8rem; color: #666; margin-top: 2px;">
+                                    by ${activity.user} • ${timeSince} • ${timeStr}
+                                </div>
+                            </div>
+                        </div>
+                        ${activity.details.amount ? `<div style="font-size: 0.85rem; color: #27ae60; font-weight: bold; margin-left: 40px;">Amount: ₱${activity.details.amount.toLocaleString()}</div>` : ''}
+                        ${activity.details.room ? `<div style="font-size: 0.85rem; color: #666; margin-left: 40px;">Room: ${activity.details.room}</div>` : ''}
+                        ${activity.details.guest ? `<div style="font-size: 0.85rem; color: #666; margin-left: 40px;">Guest: ${activity.details.guest}</div>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button onclick="viewActivityDetails('${activity.id}')" style="padding: 5px 10px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">View</button>
+                        ${activity.canUndo ? `<button onclick="undoActivity('${activity.id}')" style="padding: 5px 10px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Undo</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(activityCard);
+            });
+        }
+        
+        /**
+         * Format activity timestamp
+         */
+        function formatActivityTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        /**
+         * Get time since activity
+         */
+        function getTimeSince(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffMs = now - past;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours}h ago`;
+            
+            const diffDays = Math.floor(diffHours / 24);
+            return `${diffDays}d ago`;
+        }
+        
+        /**
+         * Filter activities
+         */
+        function filterActivities(filter) {
+            currentActivityFilter = filter;
+            
+            // Update button styles
+            document.querySelectorAll('.activity-filter-btn').forEach(btn => {
+                if (btn.dataset.filter === filter) {
+                    btn.style.background = '#3498db';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = '#3498db';
+                    btn.classList.add('active');
+                } else {
+                    btn.style.background = 'white';
+                    btn.style.color = '#666';
+                    btn.style.borderColor = '#ddd';
+                    btn.classList.remove('active');
+                }
+            });
+            
+            renderActivityTimeline();
+        }
+        
+        /**
+         * Clear activity log
+         */
+        function clearActivityLog() {
+            if (!confirm('Are you sure you want to clear the activity log? This cannot be undone.')) {
+                return;
+            }
+            
+            activityLog = [];
+            localStorage.removeItem('staffActivityLog');
+            updateManagerDashboard();
+            alert('Activity log cleared successfully!');
+        }
+        
+        /**
+         * View activity details
+         */
+        function viewActivityDetails(activityId) {
+            const activity = activityLog.find(a => a.id === activityId);
+            if (!activity) {
+                alert('Activity not found');
+                return;
+            }
+            
+            let detailsText = `Activity Details:\n\n`;
+            detailsText += `Type: ${activity.type}\n`;
+            detailsText += `Description: ${activity.description}\n`;
+            detailsText += `Staff: ${activity.user}\n`;
+            detailsText += `Time: ${new Date(activity.timestamp).toLocaleString()}\n`;
+            detailsText += `Status: ${activity.status}\n\n`;
+            
+            if (Object.keys(activity.details).length > 0) {
+                detailsText += `Additional Details:\n`;
+                for (let key in activity.details) {
+                    detailsText += `${key}: ${activity.details[key]}\n`;
+                }
+            }
+            
+            alert(detailsText);
+        }
+        
+        /**
+         * Undo activity (Manager only)
+         */
+        function undoActivity(activityId) {
+            const currentRole = sessionStorage.getItem('userRole');
+            if (currentRole !== 'MANAGER') {
+                alert('Access Denied: Only MANAGER can undo activities.');
+                return;
+            }
+            
+            const activity = activityLog.find(a => a.id === activityId);
+            if (!activity) {
+                alert('Activity not found');
+                return;
+            }
+            
+            if (!activity.canUndo) {
+                alert('This activity cannot be undone.');
+                return;
+            }
+            
+            if (!confirm(`Undo this activity?\n\n${activity.description}\n\nThis will attempt to reverse the action.`)) {
+                return;
+            }
+            
+            // Mark as undone
+            activity.status = 'undone';
+            activity.canUndo = false;
+            
+            // Save changes
+            try {
+                localStorage.setItem('staffActivityLog', JSON.stringify(activityLog));
+            } catch (e) {
+                console.log('Could not save changes');
+            }
+            
+            // Update display
+            updateManagerDashboard();
+            
+            alert('Activity marked as undone. Note: This is a record only - manual reversal may be required.');
+        }
+        
+        /**
+         * Update pending actions
+         */
+        function updatePendingActions() {
+            const container = document.getElementById('pending-actions-list');
+            const badge = document.getElementById('pending-count-badge');
+            
+            if (!container || !badge) return;
+            
+            // For now, no pending actions (future enhancement)
+            badge.textContent = '0';
+            container.innerHTML = `
+                <div style="text-align: center; padding: 30px; color: #999;">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">✅</div>
+                    <div>All caught up! No pending actions.</div>
+                </div>
+            `;
+        }
+        
+        // Load activity log on page load
+        loadActivityLog();
+        
+        // Auto-refresh Manager Dashboard every 30 seconds if visible
+        setInterval(() => {
+            const managerDashboard = document.getElementById('manager-dashboard');
+            if (managerDashboard && managerDashboard.classList.contains('active')) {
+                updateManagerDashboard();
+            }
+        }, 30000);
 
         // ROOMS DATABASE
         const roomsDB = [
+            // Duplex Rooms (6 units)
             { id: 'dup1', name: 'Duplex 1', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'dup2', name: 'Duplex 2', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'dup3', name: 'Duplex 3', category: 'Duplex', baseCapacity: 4, maxCapacity: 8, basePrice: 4100, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
@@ -1183,6 +1739,7 @@
             { id: 'dup5', name: 'Duplex 5', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'dup6', name: 'Duplex 6', category: 'Duplex', baseCapacity: 2, maxCapacity: 6, basePrice: 3000, excessRate: 550, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             
+            // Row House (6 units)
             { id: 'rh1', name: 'Row House 1', category: 'Row House', baseCapacity: 3, maxCapacity: 8, basePrice: 2500, excessRate: 400, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'rh2', name: 'Row House 2', category: 'Row House', baseCapacity: 3, maxCapacity: 8, basePrice: 2500, excessRate: 400, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'rh3', name: 'Row House 3', category: 'Row House', baseCapacity: 3, maxCapacity: 8, basePrice: 2500, excessRate: 400, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
@@ -1190,10 +1747,25 @@
             { id: 'rh5', name: 'Row House 5', category: 'Row House', baseCapacity: 3, maxCapacity: 8, basePrice: 2500, excessRate: 400, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             { id: 'rh6', name: 'Row House 6', category: 'Row House', baseCapacity: 3, maxCapacity: 8, basePrice: 2500, excessRate: 400, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
             
-            { id: 'acaf', name: 'AC A-Frame', category: 'AC A-Frame', baseCapacity: 2, maxCapacity: 3, basePrice: 2500, excessRate: 350, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
-            { id: 'rega_dt', name: 'Regular A-Frame (Daytour)', category: 'Regular A-Frame', baseCapacity: 2, maxCapacity: 5, basePrice: 1800, excessRate: 150, isVanessa: true, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
-            { id: 'rega_on', name: 'Regular A-Frame (Overnight)', category: 'Regular A-Frame', baseCapacity: 2, maxCapacity: 5, basePrice: 2000, excessRate: 150, isVanessa: true, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' }
+            // AC A-Frame Rooms (7 units - UPDATED)
+            { id: 'acaf1', name: 'AC A-Frame 1', category: 'AC A-Frame', baseCapacity: 2, maxCapacity: 3, basePrice: 2500, excessRate: 350, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'acaf2', name: 'AC A-Frame 2', category: 'AC A-Frame', baseCapacity: 2, maxCapacity: 3, basePrice: 2500, excessRate: 350, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'acaf3', name: 'AC A-Frame 3', category: 'AC A-Frame', baseCapacity: 2, maxCapacity: 3, basePrice: 2500, excessRate: 350, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'acaf4', name: 'AC A-Frame 4', category: 'AC A-Frame', baseCapacity: 2, maxCapacity: 3, basePrice: 2500, excessRate: 350, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'acaf5', name: 'AC A-Frame 5', category: 'AC A-Frame', baseCapacity: 2, maxCapacity: 3, basePrice: 2500, excessRate: 350, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'acaf6', name: 'AC A-Frame 6', category: 'AC A-Frame', baseCapacity: 2, maxCapacity: 3, basePrice: 2500, excessRate: 350, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'acaf7', name: 'AC A-Frame 7', category: 'AC A-Frame', baseCapacity: 2, maxCapacity: 3, basePrice: 2500, excessRate: 350, isVanessa: false, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            
+            // Regular A-Frame Rooms (6 units - UPDATED)
+            { id: 'regaf1', name: 'Regular A-Frame 1', category: 'Regular A-Frame', baseCapacity: 2, maxCapacity: 5, basePrice: 2000, excessRate: 150, isVanessa: true, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'regaf2', name: 'Regular A-Frame 2', category: 'Regular A-Frame', baseCapacity: 2, maxCapacity: 5, basePrice: 2000, excessRate: 150, isVanessa: true, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'regaf3', name: 'Regular A-Frame 3', category: 'Regular A-Frame', baseCapacity: 2, maxCapacity: 5, basePrice: 2000, excessRate: 150, isVanessa: true, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'regaf4', name: 'Regular A-Frame 4', category: 'Regular A-Frame', baseCapacity: 2, maxCapacity: 5, basePrice: 2000, excessRate: 150, isVanessa: true, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'regaf5', name: 'Regular A-Frame 5', category: 'Regular A-Frame', baseCapacity: 2, maxCapacity: 5, basePrice: 2000, excessRate: 150, isVanessa: true, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' },
+            { id: 'regaf6', name: 'Regular A-Frame 6', category: 'Regular A-Frame', baseCapacity: 2, maxCapacity: 5, basePrice: 2000, excessRate: 150, isVanessa: true, status: 'available', checkIn: '', checkOut: '', guestDisplay: '' }
         ];
+        
+        // Total: 25 rooms (6 Duplex + 6 Row House + 7 AC A-Frame + 6 Regular A-Frame)
 
         let currentRoomFilter = null;
         function renderRoomsTable(categoryFilter = null) {
@@ -1210,22 +1782,45 @@
             filteredRooms.forEach(room => {
                 let statusHtml = '';
                 let actionHtml = '';
+                
+                // Get smart color for the room
+                const roomColor = getRoomColor(room);
+                
                 if (room.status === 'available') {
-                    statusHtml = `<span class="status-badge" style="background-color: #2ecc71;">Available</span>`;
+                    statusHtml = `<span class="status-badge" style="background-color: ${roomColor};">Available</span>`;
                     actionHtml = `<button class="action-btn" onclick="openBookingModal('${room.id}')">Book / Check-In</button>
                                   <button class="action-btn" style="background-color: #3498db; margin-left: 5px; margin-top: 5px;" onclick="quickStatus('${room.id}', 'booked')">Reserve</button>
                                   <button class="action-btn" style="background-color: #f1c40f; color: #333; margin-left: 5px; margin-top: 5px;" onclick="quickStatus('${room.id}', 'cleaning')">Clean</button>`;
                 } else if (room.status === 'occupied') {
-                    statusHtml = `<span class="status-badge" style="background-color: #e74c3c;">Occupied</span>
+                    const countdown = calculateTimeRemaining(room.checkOut);
+                    const countdownColor = countdown.includes('OVERDUE') ? '#e74c3c' : '#27ae60';
+                    
+                    statusHtml = `<span class="status-badge" style="background-color: ${roomColor};">Occupied</span>
                                   <div style="font-size: 0.75rem; color: #666; margin-top:4px;">${room.checkIn} to ${room.checkOut}</div>
-                                  <div style="font-size: 0.75rem; color: #333;"><b>${room.guestDisplay}</b></div>`;
-                    actionHtml = `<button class="action-btn checkout" onclick="checkoutRoom('${room.id}')">Check Out</button>`;
+                                  <div style="font-size: 0.75rem; color: #333;"><b>${room.guestDisplay}</b></div>
+                                  <div style="font-size: 0.75rem; color: ${countdownColor}; margin-top:4px; font-weight: bold;">⏱️ ${countdown} remaining</div>`;
+                    actionHtml = `<button class="action-btn checkout" onclick="checkoutRoom('${room.id}')">Check Out</button>
+                                  <button class="action-btn" onclick="openExtensionModal('${room.id}')" style="background-color: #f39c12; margin-left: 5px; margin-top: 5px;">Extend Stay</button>`;
                 } else if (room.status === 'booked') {
-                    statusHtml = `<span class="status-badge" style="background-color: #3498db;">Booked in Advance</span>`;
-                    actionHtml = `<button class="action-btn" onclick="openBookingModal('${room.id}')">Check-In Now</button>
-                                  <button class="action-btn checkout" style="margin-left: 5px; margin-top: 5px;" onclick="quickStatus('${room.id}', 'available')">Cancel</button>`;
+                    const statusLabel = getBookingStatusLabel(room);
+                    const isToday = isCheckInToday(room.checkIn);
+                    
+                    if (isToday) {
+                        statusHtml = `<span class="status-badge" style="background-color: ${roomColor}; animation: pulse 1.5s infinite;">🔴 ${statusLabel}</span>
+                                      <div style="font-size: 0.75rem; color: #e74c3c; margin-top:4px; font-weight: bold;">Guest should check-in at 2:00 PM</div>
+                                      <div style="font-size: 0.75rem; color: #333; margin-top:2px;"><b>${room.guestDisplay}</b></div>`;
+                        actionHtml = `<button class="action-btn" onclick="openBookingModal('${room.id}')" style="background-color: #e74c3c;">Check-In Now</button>
+                                      <button class="action-btn checkout" style="margin-left: 5px; margin-top: 5px;" onclick="quickStatus('${room.id}', 'available')">Cancel</button>`;
+                    } else {
+                        const daysAway = getDaysUntilCheckIn(room.checkIn);
+                        statusHtml = `<span class="status-badge" style="background-color: ${roomColor};">Booked (${daysAway}d away)</span>
+                                      <div style="font-size: 0.75rem; color: #666; margin-top:4px;">Check-in: ${room.checkIn}</div>
+                                      <div style="font-size: 0.75rem; color: #333; margin-top:2px;"><b>${room.guestDisplay}</b></div>`;
+                        actionHtml = `<button class="action-btn" onclick="openBookingModal('${room.id}')">View Details</button>
+                                      <button class="action-btn checkout" style="margin-left: 5px; margin-top: 5px;" onclick="quickStatus('${room.id}', 'available')">Cancel</button>`;
+                    }
                 } else if (room.status === 'cleaning') {
-                    statusHtml = `<span class="status-badge" style="background-color: #f1c40f; color: #333;">Cleaning</span>`;
+                    statusHtml = `<span class="status-badge" style="background-color: ${roomColor}; color: #333;">Cleaning</span>`;
                     actionHtml = `<button class="action-btn" style="background-color: #2ecc71;" onclick="quickStatus('${room.id}', 'available')">Mark Available</button>`;
                 }
 
@@ -1287,6 +1882,141 @@
             document.getElementById('booking-modal').classList.remove('active');
         }
 
+        // ============================================
+        // EXTENSION MODAL FUNCTIONS
+        // ============================================
+        
+        function openExtensionModal(roomId) {
+            const room = roomsDB.find(r => r.id === roomId);
+            if (!room) return;
+            
+            document.getElementById('ext-room-id').value = roomId;
+            document.getElementById('ext-room-name').value = room.name;
+            document.getElementById('ext-current-checkout').value = room.checkOut + ' at 12:00 PM';
+            document.getElementById('ext-hours').value = '';
+            document.getElementById('ext-new-checkout').value = '';
+            document.getElementById('ext-cost-summary').style.display = 'none';
+            
+            document.getElementById('extension-modal').classList.add('active');
+        }
+        
+        function closeExtensionModal() {
+            document.getElementById('extension-modal').classList.remove('active');
+        }
+        
+        function calculateExtensionCost() {
+            const hours = parseInt(document.getElementById('ext-hours').value);
+            const roomId = document.getElementById('ext-room-id').value;
+            const room = roomsDB.find(r => r.id === roomId);
+            
+            if (!hours || !room) {
+                document.getElementById('ext-cost-summary').style.display = 'none';
+                return;
+            }
+            
+            const cost = hours * 300; // ₱300 per hour
+            
+            // Calculate new checkout time (12 PM + extension hours)
+            const baseHour = 12; // 12:00 PM
+            const newHour = baseHour + hours;
+            
+            let displayHour, period, newDate;
+            const currentCheckoutDate = new Date(room.checkOut);
+            
+            if (newHour >= 24) {
+                // Extension goes to next day
+                displayHour = newHour - 24;
+                period = displayHour >= 12 ? 'PM' : 'AM';
+                if (displayHour > 12) displayHour = displayHour - 12;
+                if (displayHour === 0) displayHour = 12;
+                
+                // Add one day to checkout date
+                newDate = new Date(currentCheckoutDate);
+                newDate.setDate(newDate.getDate() + 1);
+            } else {
+                // Same day extension
+                displayHour = newHour > 12 ? newHour - 12 : newHour;
+                period = newHour >= 12 ? 'PM' : 'AM';
+                if (displayHour === 0) displayHour = 12;
+                newDate = currentCheckoutDate;
+            }
+            
+            const newDateString = newDate.toISOString().split('T')[0];
+            
+            document.getElementById('ext-new-checkout').value = `${newDateString} at ${displayHour}:00 ${period}`;
+            document.getElementById('ext-total-cost').textContent = cost.toLocaleString();
+            document.getElementById('ext-hours-text').textContent = hours;
+            document.getElementById('ext-calculation').textContent = cost.toLocaleString();
+            document.getElementById('ext-cost-summary').style.display = 'block';
+        }
+        
+        function confirmExtension() {
+            const roomId = document.getElementById('ext-room-id').value;
+            const hours = parseInt(document.getElementById('ext-hours').value);
+            
+            if (!hours) {
+                alert('Please select extension hours.');
+                return;
+            }
+            
+            const room = roomsDB.find(r => r.id === roomId);
+            if (!room) return;
+            
+            const cost = hours * 300;
+            
+            // Calculate new checkout date
+            const baseHour = 12; // 12:00 PM
+            const newHour = baseHour + hours;
+            const currentCheckoutDate = new Date(room.checkOut);
+            
+            let newCheckoutDate;
+            if (newHour >= 24) {
+                // Extension goes to next day
+                newCheckoutDate = new Date(currentCheckoutDate);
+                newCheckoutDate.setDate(newCheckoutDate.getDate() + 1);
+            } else {
+                // Same day extension
+                newCheckoutDate = currentCheckoutDate;
+            }
+            
+            const newDateString = newCheckoutDate.toISOString().split('T')[0];
+            
+            // Store extension info in room (for proper countdown calculation)
+            room.checkOut = newDateString;
+            room.extensionHours = hours; // Store for countdown calculations
+            
+            // Add extension to transaction log
+            const extItemName = `Extension: ${room.name} (+${hours}h)`;
+            addToBill(extItemName, cost, 1, cost, 0, 'Room Extension');
+            
+            // Log activity for Manager Dashboard
+            logStaffActivity('transaction', `Room extension: ${room.name} (+${hours} hours)`, {
+                room: room.name,
+                hours: hours,
+                cost: cost,
+                newCheckout: newDateString,
+                type: 'extension'
+            });
+            
+            // Close modal and update displays
+            closeExtensionModal();
+            renderRoomsTable();
+            if(typeof renderRoomMap === 'function') renderRoomMap();
+            
+            // Calculate display time for confirmation
+            let displayHour, period;
+            if (newHour >= 24) {
+                const adjustedHour = newHour - 24;
+                displayHour = adjustedHour > 12 ? adjustedHour - 12 : (adjustedHour === 0 ? 12 : adjustedHour);
+                period = adjustedHour >= 12 ? 'PM' : 'AM';
+            } else {
+                displayHour = newHour > 12 ? newHour - 12 : newHour;
+                period = newHour >= 12 ? 'PM' : 'AM';
+            }
+            
+            alert(`Extension confirmed!\n\n${room.name} extended for ${hours} hours.\nNew checkout: ${newDateString} at ${displayHour}:00 ${period}\nExtension fee: ₱${cost.toLocaleString()} added to bill.`);
+        }
+
         function confirmBooking() {
             const roomId = document.getElementById('modal-room-id').value;
             const inDate = document.getElementById('modal-in').value;
@@ -1334,6 +2064,16 @@
             let displayGuest = primaryGuest;
             if(otherGuests) displayGuest += ` (+ ${otherGuests})`;
             room.guestDisplay = displayGuest;
+            
+            // Log activity for Manager Dashboard
+            logStaffActivity('checkin', `Checked in ${room.name}`, {
+                room: room.name,
+                guest: primaryGuest,
+                checkIn: inDate,
+                checkOut: outDate,
+                amount: finalPrice,
+                pax: room.baseCapacity + excessQty
+            });
 
             addToBill(label, finalPrice, vanessaShare, resortShare, fullDetails);
             renderRoomsTable();
@@ -1344,15 +2084,220 @@
         function checkoutRoom(roomId) {
             const room = roomsDB.find(r => r.id === roomId);
             if(!room) return;
+            
+            // Check if guest needs extension
+            const isOverdue = isRoomOverdue(room);
+            if (isOverdue) {
+                const extendChoice = confirm(`${room.name} checkout time has passed. Would you like to:\n\nOK = Extend stay (₱300/hour)\nCancel = Proceed with checkout`);
+                
+                if (extendChoice) {
+                    openExtensionModal(roomId);
+                    return;
+                }
+            }
+            
             if(confirm(`Are you sure you want to check out ${room.name}?`)) {
-                room.status = 'available';
+                const guestName = room.guestDisplay;
+                
+                // Automatically set to cleaning status instead of available
+                room.status = 'cleaning';
                 room.checkIn = '';
                 room.checkOut = '';
                 room.guestDisplay = '';
+                
+                // Log activity for Manager Dashboard
+                logStaffActivity('checkout', `Checked out ${room.name} - Status: Cleaning`, {
+                    room: room.name,
+                    guest: guestName,
+                    newStatus: 'cleaning'
+                });
+                
                 renderRoomsTable();
                 if(typeof renderRoomMap === 'function') renderRoomMap();
+                
+                // Show notification about cleaning status
+                setTimeout(() => {
+                    alert(`${room.name} has been checked out and is now marked as "Cleaning". Staff can mark it as Available once housekeeping is complete.`);
+                }, 500);
             }
         }
+
+        // ============================================
+        // COUNTDOWN TIMER & BOOKING COLOR FUNCTIONS
+        // ============================================
+        
+        /**
+         * Check if a room is past its checkout time (considering extensions)
+         */
+        function isRoomOverdue(room) {
+            if (!room.checkOut || room.status !== 'occupied') return false;
+            
+            const now = new Date();
+            const extensionHours = room.extensionHours || 0;
+            const baseCheckout = new Date(room.checkOut + 'T12:00:00');
+            const finalCheckout = new Date(baseCheckout.getTime() + (extensionHours * 60 * 60 * 1000));
+            
+            return now > finalCheckout;
+        }
+        
+        /**
+         * Automatic status management - check for overdue rooms and auto-set to cleaning
+         */
+        function automaticStatusManagement() {
+            let changedRooms = [];
+            
+            roomsDB.forEach(room => {
+                if (room.status === 'occupied' && isRoomOverdue(room)) {
+                    // Only auto-change if significantly overdue (more than 1 minute past checkout)
+                    const now = new Date();
+                    const extensionHours = room.extensionHours || 0;
+                    const baseCheckout = new Date(room.checkOut + 'T12:00:00');
+                    const finalCheckout = new Date(baseCheckout.getTime() + (extensionHours * 60 * 60 * 1000));
+                    const minutesOverdue = Math.floor((now - finalCheckout) / (1000 * 60));
+                    
+                    if (minutesOverdue > 1) {
+                        const guestName = room.guestDisplay;
+                        room.status = 'cleaning';
+                        room.checkIn = '';
+                        room.checkOut = '';
+                        room.guestDisplay = '';
+                        room.extensionHours = 0; // Reset extension hours
+                        
+                        changedRooms.push(room.name);
+                        
+                        // Log automatic checkout
+                        logStaffActivity('checkout', `Auto-checkout: ${room.name} - Status: Cleaning`, {
+                            room: room.name,
+                            guest: guestName,
+                            type: 'automatic',
+                            reason: `${minutesOverdue} minutes overdue`,
+                            extensionHours: extensionHours
+                        });
+                    }
+                }
+            });
+            
+            // If any rooms were automatically changed, update the display
+            if (changedRooms.length > 0) {
+                renderRoomsTable();
+                if(typeof renderRoomMap === 'function') renderRoomMap();
+                
+                // Optional: Show notification (comment out if too intrusive)
+                // console.log(`Auto-checkout completed for: ${changedRooms.join(', ')}`);
+            }
+        }
+        /**
+         * Check if a booking check-in date is today
+         */
+        function isCheckInToday(checkInDate) {
+            if (!checkInDate) return false;
+            const today = new Date();
+            const checkIn = new Date(checkInDate);
+            return today.toDateString() === checkIn.toDateString();
+        }
+        
+        /**
+         * Calculate remaining time until check-out (supports extended checkout times)
+         * Returns formatted string: "Xd Yh Zm" or status message
+         */
+        function calculateTimeRemaining(checkOutDate) {
+            if (!checkOutDate) return '';
+            
+            const now = new Date();
+            
+            // Find the room to get extension info
+            const room = roomsDB.find(r => r.checkOut === checkOutDate);
+            const extensionHours = room && room.extensionHours ? room.extensionHours : 0;
+            
+            // Calculate final checkout time (12:00 PM + extension hours)
+            const baseCheckout = new Date(checkOutDate + 'T12:00:00');
+            const finalCheckout = new Date(baseCheckout.getTime() + (extensionHours * 60 * 60 * 1000));
+            
+            const diff = finalCheckout - now;
+            
+            if (diff <= 0) {
+                // Check-out time has passed
+                return '⚠️ OVERDUE';
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            // Format output
+            if (days > 0) {
+                return `${days}d ${hours}h ${minutes}m`;
+            } else if (hours > 0) {
+                return `${hours}h ${minutes}m`;
+            } else {
+                return `${minutes}m`;
+            }
+        }
+        
+        /**
+         * Get the appropriate background color for a room based on status and booking date
+         */
+        function getRoomColor(room) {
+            if (room.status === 'available') return '#2ecc71'; // Green
+            if (room.status === 'cleaning') return '#f1c40f'; // Yellow
+            if (room.status === 'occupied') return '#e74c3c'; // Red
+            
+            if (room.status === 'booked') {
+                // Check if check-in is today
+                if (isCheckInToday(room.checkIn)) {
+                    return '#e74c3c'; // Red - guest should check-in today
+                } else {
+                    return '#3498db'; // Blue - future booking
+                }
+            }
+            
+            return '#2ecc71'; // Default to green (available)
+        }
+        
+        /**
+         * Get status label for booking
+         */
+        function getBookingStatusLabel(room) {
+            if (room.status === 'booked' && isCheckInToday(room.checkIn)) {
+                return 'DUE TODAY';
+            }
+            if (room.status === 'booked') {
+                return 'BOOKED';
+            }
+            if (room.status === 'occupied') {
+                return 'OCCUPIED';
+            }
+            return '';
+        }
+        
+        /**
+         * Calculate days until check-in
+         */
+        function getDaysUntilCheckIn(checkInDate) {
+            if (!checkInDate) return 0;
+            const now = new Date();
+            const checkIn = new Date(checkInDate);
+            const diff = checkIn - now;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            return days > 0 ? days : 0;
+        }
+        
+        /**
+         * Update all countdown timers on the page
+         */
+        function updateAllCountdowns() {
+            // Update room map countdowns
+            renderRoomMap();
+            
+            // Update room table countdowns  
+            renderRoomsTable();
+            
+            // Run automatic status management
+            automaticStatusManagement();
+        }
+        
+        // Auto-update countdowns every minute
+        setInterval(updateAllCountdowns, 60000);
 
 
         function renderRoomMap() {
@@ -1385,8 +2330,8 @@
                 
                 catRooms.forEach(room => {
                     const box = document.createElement('div');
-                    box.style.width = '110px';
-                    box.style.height = '85px';
+                    box.style.width = '120px';
+                    box.style.minHeight = '95px';
                     box.style.borderRadius = '8px';
                     box.style.display = 'flex';
                     box.style.flexDirection = 'column';
@@ -1396,27 +2341,55 @@
                     box.style.fontWeight = 'bold';
                     box.style.cursor = 'pointer';
                     box.style.textAlign = 'center';
-                    box.style.padding = '5px';
+                    box.style.padding = '8px';
                     box.style.boxSizing = 'border-box';
                     box.style.boxShadow = '0 3px 6px rgba(0,0,0,0.15)';
                     box.style.transition = 'transform 0.2s';
                     
-                    let bgColor = '#2ecc71'; 
-                    if (room.status === 'occupied') bgColor = '#e74c3c';
-                    else if (room.status === 'booked') bgColor = '#3498db';
-                    else if (room.status === 'cleaning') bgColor = '#f1c40f';
-                    
+                    // Use smart color logic
+                    let bgColor = getRoomColor(room);
                     box.style.backgroundColor = bgColor;
                     if (room.status === 'cleaning') box.style.color = '#333';
                     
+                    // Shorten room name for display
                     let shortName = room.name.replace('Duplex ', 'D-')
                                              .replace('Row House ', 'RH-')
-                                             .replace('Regular A-Frame', 'Reg-')
-                                             .replace('AC A-Frame', 'AC-')
-                                             .replace(' (Daytour)', '(Day)')
-                                             .replace(' (Overnight)', '(Night)');
+                                             .replace('Regular A-Frame ', 'Reg-')
+                                             .replace('AC A-Frame ', 'AC-');
                     
-                    box.innerHTML = `<div style="font-size: 1.1rem; margin-bottom: 5px;">${shortName}</div>`;
+                    let displayHTML = `<div style="font-size: 1.05rem; margin-bottom: 3px;">${shortName}</div>`;
+                    
+                    // Add additional info based on status
+                    if (room.status === 'occupied') {
+                        // Show guest name and countdown
+                        const guestName = room.guestDisplay ? room.guestDisplay.split('(')[0].trim() : '';
+                        const firstName = guestName.split(' ')[0];
+                        const countdown = calculateTimeRemaining(room.checkOut);
+                        
+                        displayHTML += `<div style="font-size: 0.75rem; margin-top: 2px; opacity: 0.95;">${firstName}</div>`;
+                        displayHTML += `<div style="font-size: 0.7rem; margin-top: 3px; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 10px;">⏱️ ${countdown}</div>`;
+                    } else if (room.status === 'booked') {
+                        // Show booking info
+                        if (isCheckInToday(room.checkIn)) {
+                            displayHTML += `<div style="font-size: 0.75rem; margin-top: 4px; animation: pulse 1.5s infinite;">CHECK-IN</div>`;
+                            displayHTML += `<div style="font-size: 0.7rem;">TODAY!</div>`;
+                        } else {
+                            const guestName = room.guestDisplay ? room.guestDisplay.split('(')[0].trim() : '';
+                            const firstName = guestName.split(' ')[0];
+                            const daysAway = getDaysUntilCheckIn(room.checkIn);
+                            
+                            if (firstName) {
+                                displayHTML += `<div style="font-size: 0.75rem; margin-top: 2px; opacity: 0.95;">${firstName}</div>`;
+                            }
+                            displayHTML += `<div style="font-size: 0.7rem; margin-top: 2px; opacity: 0.9;">${daysAway}d away</div>`;
+                        }
+                    } else if (room.status === 'cleaning') {
+                        displayHTML += `<div style="font-size: 0.75rem; margin-top: 4px;">CLEANING</div>`;
+                    } else if (room.status === 'available') {
+                        displayHTML += `<div style="font-size: 0.75rem; margin-top: 4px; opacity: 0.9;">Available</div>`;
+                    }
+                    
+                    box.innerHTML = displayHTML;
                     
                     box.onmouseover = () => box.style.transform = 'translateY(-3px)';
                     box.onmouseout = () => box.style.transform = 'translateY(0)';
@@ -1448,7 +2421,16 @@
         function quickStatus(roomId, newStatus) {
             const room = roomsDB.find(r => r.id === roomId);
             if(room) {
+                const oldStatus = room.status;
                 room.status = newStatus;
+                
+                // Log activity for Manager Dashboard
+                logStaffActivity('status', `Changed ${room.name} status: ${oldStatus} → ${newStatus}`, {
+                    room: room.name,
+                    oldStatus: oldStatus,
+                    newStatus: newStatus
+                });
+                
                 renderRoomsTable();
                 renderRoomMap();
             }
@@ -1476,6 +2458,14 @@
                 }
             }
             
+            // Restrict Manager Dashboard to MANAGER only
+            if (sectionId === 'manager-dashboard') {
+                if (userRole !== 'MANAGER') {
+                    alert('Access Denied: Only MANAGER can access this dashboard.');
+                    return;
+                }
+            }
+            
             const sections = document.querySelectorAll('.section-content');
             sections.forEach(section => section.classList.remove('active'));
             const buttons = document.querySelectorAll('.menu-btn');
@@ -1485,6 +2475,10 @@
             
             if (sectionId === 'reports-tab') {
                 generateMonthlyReport();
+            }
+            
+            if (sectionId === 'manager-dashboard') {
+                updateManagerDashboard();
             }
             if (sectionId === 'rooms') {
                 showRoomCategories();
@@ -1556,6 +2550,14 @@
                 createdBy: userEmail,
                 createdByRole: userRole,
                 timestamp: Date.now()
+            });
+            
+            // Log activity for Manager Dashboard
+            logStaffActivity('transaction', `Processed transaction: ${itemName}`, {
+                amount: totalCost,
+                item: itemName,
+                quantity: qty,
+                transactionId: transactionId
             });
 
             const displayLabel = dashboardDetails ? dashboardDetails : itemName;
@@ -2261,10 +3263,10 @@
                 'CEO': {
                     allowedSections: ['room-map', 'rooms', 'reports-tab'],
                     readOnlySections: ['room-map', 'rooms'],
-                    hiddenSections: ['entrance', 'corkage', 'tents', 'outlets', 'other']
+                    hiddenSections: ['entrance', 'corkage', 'tents', 'outlets', 'other', 'manager-dashboard']
                 },
                 'MANAGER': {
-                    allowedSections: ['room-map', 'rooms', 'entrance', 'corkage', 'tents', 'outlets', 'other', 'reports-tab'],
+                    allowedSections: ['room-map', 'rooms', 'entrance', 'corkage', 'tents', 'outlets', 'other', 'reports-tab', 'manager-dashboard'],
                     readOnlySections: [],
                     hiddenSections: [],
                     canEdit: true,
@@ -2273,7 +3275,7 @@
                 'IT': {
                     allowedSections: ['room-map', 'rooms', 'entrance', 'corkage', 'tents', 'outlets', 'other'],
                     readOnlySections: [],
-                    hiddenSections: ['reports-tab'],
+                    hiddenSections: ['reports-tab', 'manager-dashboard'],
                     canEdit: false,
                     canDelete: false
                 }
@@ -2304,6 +3306,14 @@
                 reportsBtn.style.display = 'block';
             } else if (reportsBtn) {
                 reportsBtn.style.display = 'none';
+            }
+            
+            // Explicitly ensure Manager Dashboard button is visible for MANAGER only
+            const managerDashboardBtn = document.getElementById('nav-manager-dashboard-btn');
+            if (managerDashboardBtn && role === 'MANAGER') {
+                managerDashboardBtn.style.display = 'block';
+            } else if (managerDashboardBtn) {
+                managerDashboardBtn.style.display = 'none';
             }
 
             // Add role indicator to header
